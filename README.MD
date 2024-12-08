@@ -81,7 +81,7 @@ import docker
 import os
 
 client = docker.from_env()
-dockerfile_path = os.path.abspath("../docker")
+dockerfile_path = os.path.abspath("../drones")
 
 image_name = "drone_image"
 image_tag = "latest"

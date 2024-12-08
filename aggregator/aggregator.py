@@ -1,4 +1,4 @@
-# aggregator.py
+#aggregator.py
 import socket
 import threading
 
@@ -19,7 +19,6 @@ def run_aggregator():
     while True:
         data, addr = sock.recvfrom(1024)
         threading.Thread(target=handle_message, args=(data, addr)).start()
-
 
 
 if __name__ == "__main__":

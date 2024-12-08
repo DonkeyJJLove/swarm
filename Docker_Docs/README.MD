@@ -61,18 +61,18 @@
 
 - **Uruchomienie kontenera**:
   ```bash
-  docker run -it --name my-container ubuntu:latest bash
+  drones run -it --name my-container ubuntu:latest bash
   ```
 
 - **Zatrzymanie i usunięcie kontenera**:
   ```bash
-  docker stop my-container
-  docker rm my-container
+  drones stop my-container
+  drones rm my-container
   ```
 
 - **Lista obrazów**:
   ```bash
-  docker images
+  drones images
   ```
 
 ---
@@ -81,27 +81,27 @@
 
 - **Uruchomienie kontenera w tle**:
   ```bash
-  docker run -d --name my-nginx -p 8080:80 nginx:latest
+  drones run -d --name my-nginx -p 8080:80 nginx:latest
   ```
 
 - **Wejście do działającego kontenera**:
   ```bash
-  docker exec -it my-nginx bash
+  drones exec -it my-nginx bash
   ```
 
 - **Zatrzymanie wszystkich kontenerów**:
   ```bash
-  docker stop $(docker ps -q)
+  drones stop $(drones ps -q)
   ```
 
 - **Usunięcie wszystkich kontenerów**:
   ```bash
-  docker rm $(docker ps -aq)
+  drones rm $(drones ps -aq)
   ```
 
 - **Logi z kontenera**:
   ```bash
-  docker logs my-nginx
+  drones logs my-nginx
   ```
 
 ---
@@ -130,7 +130,7 @@ CMD ["python", "app.py"]
 #### Budowanie Obrazu
 
 ```bash
-docker build -t my-python-app .
+drones build -t my-python-app .
 ```
 
 #### Optymalizacja Obrazów
@@ -180,12 +180,12 @@ services:
 
 - **Uruchomienie usług**:
   ```bash
-  docker-compose up -d
+  drones-compose up -d
   ```
 
 - **Zatrzymanie usług**:
   ```bash
-  docker-compose down
+  drones-compose down
   ```
 
 ---
@@ -196,25 +196,25 @@ services:
 
 - **Tworzenie woluminu**:
   ```bash
-  docker volume create my-volume
+  drones volume create my-volume
   ```
 
 - **Używanie woluminu w kontenerze**:
   ```bash
-  docker run -d -v my-volume:/data ubuntu
+  drones run -d -v my-volume:/data ubuntu
   ```
 
 #### Sieci
 
 - **Tworzenie sieci**:
   ```bash
-  docker network create my-network
+  drones network create my-network
   ```
 
 - **Podłączanie kontenerów do sieci**:
   ```bash
-  docker run -d --name app1 --network my-network nginx
-  docker run -d --name app2 --network my-network nginx
+  drones run -d --name app1 --network my-network nginx
+  drones run -d --name app2 --network my-network nginx
   ```
 
 ---
@@ -463,7 +463,7 @@ Aby skutecznie zbierać dane od wszystkich dronów, konieczne jest stworzenie ce
 Stwórz skrypt `aggregator.py`, który będzie nasłuchiwał na określonym porcie UDP i zbierał dane od wszystkich dronów.
 
 ```python
-# aggregator.py
+#aggregator.py
 import socket
 import threading
 
@@ -492,7 +492,7 @@ if __name__ == "__main__":
 Utwórz oddzielny `Dockerfile` dla agregatora, aby móc go wdrożyć jako osobny pod w Kubernetes.
 
 ```dockerfile
-# aggregator/Dockerfile
+#aggregator/Dockerfile
 FROM python:3.11-slim
 
 WORKDIR /app
@@ -638,16 +638,16 @@ Upewnij się, że obrazy Docker dla dronów i agregatora są zbudowane i przesł
 
 ```bash
 # Budowanie obrazu drona
-cd docker/
-docker build -t localhost:5000/mydrone:latest .
+cd drones/
+drones build -t localhost:5000/mydrone:latest .
 
 # Budowanie obrazu agregatora
 cd ../aggregator/
-docker build -t localhost:5000/aggregator:latest .
+drones build -t localhost:5000/aggregator:latest .
 
 # Push obrazów do lokalnego rejestru
-docker push localhost:5000/mydrone:latest
-docker push localhost:5000/aggregator:latest
+drones push localhost:5000/mydrone:latest
+drones push localhost:5000/aggregator:latest
 ```
 
 Następnie zastosuj konfiguracje YAML w Kubernetes:
@@ -952,10 +952,10 @@ spec:
 ```bash
 # Budowanie obrazu agregatora MQTT
 cd mqtt_aggregator/
-docker build -t localhost:5000/mqtt-aggregator:latest .
+drones build -t localhost:5000/mqtt-aggregator:latest .
 
 # Push obrazu do lokalnego rejestru
-docker push localhost:5000/mqtt-aggregator:latest
+drones push localhost:5000/mqtt-aggregator:latest
 
 # Zastosowanie konfiguracji w Kubernetes
 kubectl apply -f mqtt-aggregator-deployment.yaml

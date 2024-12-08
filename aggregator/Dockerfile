@@ -1,4 +1,4 @@
-# aggregator/Dockerfile
+#aggregator/Dockerfile
 FROM python:3.11-slim
 
 # Ustawienie metadanych obrazu
@@ -11,7 +11,7 @@ LABEL application="data-aggregator"
 WORKDIR /app
 
 # Skopiowanie pliku skryptu do katalogu roboczego
-COPY aggregator.py /app/aggregator.py
+COPY aggregator/aggregator.py /app/aggregator.py
 
 # Instalacja zależności, jeśli są potrzebne (odkomentuj i dostosuj)
 # COPY requirements.txt /app/requirements.txt

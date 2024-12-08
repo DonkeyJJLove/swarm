@@ -2,7 +2,7 @@
 FROM python:3.11-slim
 
 WORKDIR /app
-COPY mqtt_aggregator.py /app/mqtt_aggregator.py
+COPY mqtt/mqtt_aggregator.py /app/mqtt_aggregator.py
 
 RUN pip install paho-mqtt
 

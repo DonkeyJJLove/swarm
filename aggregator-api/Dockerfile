@@ -1,7 +1,7 @@
 FROM python:3.11-slim
 
 WORKDIR /app
-COPY aggregator_api.py /app/aggregator_api.py
+COPY aggregator_api/aggregator_api.py /app/aggregator_api.py
 
 RUN pip install flask
 

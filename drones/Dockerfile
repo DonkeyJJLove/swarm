@@ -1,7 +1,7 @@
 FROM python:3.11-slim
 
 WORKDIR /app
-COPY drone_logic.py /app/drone_logic.py
+COPY drones/drone_logic.py /app/drone_logic.py
 
 # Jeśli potrzebujesz dodatkowych zależności:
 # RUN pip install <pakiety>
