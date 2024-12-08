@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aggregator-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aggregator-api
+  template:
+    metadata:
+      labels:
+        app: aggregator-api
+    spec:
+      containers:
+        - name: aggregator-api
+          image: localhost:5000/aggregator-api:latest
+          ports:
+            - containerPort: 5001
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aggregator-service
+spec:
+  selector:
+    app: aggregator-api
+  ports:
+    - port: 5001
+      targetPort: 5001
+  type: ClusterIP

@@ -4,24 +4,23 @@ import time
 import random
 
 DRONE_NAME = os.getenv("DRONE_NAME", f"drone_{random.randint(1000, 9999)}")
-DRONE_PORT = int(os.getenv("DRONE_PORT", "5000"))
-DISCOVERY_HOST = "drone-service"  # DNS usługi, która będzie headless
-DISCOVERY_PORT = 5000
+AGGREGATOR_HOST = os.getenv("AGGREGATOR_HOST", "aggregator-service")  # Nazwa DNS agregatora w Kubernetes
+AGGREGATOR_PORT = int(os.getenv("AGGREGATOR_PORT", "5001"))
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-sock.bind(("0.0.0.0", DRONE_PORT))
 
 position = [random.randint(0, 100), random.randint(0, 100)]
 
 while True:
-    # Wysyłanie pozycji do DISCOVERY_HOST (headless service)
+    # Tworzenie wiadomości
     message = f"{DRONE_NAME} at position {position[0]}, {position[1]}"
     try:
-        sock.sendto(message.encode(), (DISCOVERY_HOST, DISCOVERY_PORT))
+        # Wysyłanie danych do agregatora
+        sock.sendto(message.encode(), (AGGREGATOR_HOST, AGGREGATOR_PORT))
     except Exception as e:
-        pass  # może się nie powieść, jeśli nie ma jeszcze innych podów
+        print(f"Error sending data: {e}")
 
-    # Odbiór wiadomości od innych
+    # Odbiór wiadomości od innych (opcjonalne)
     sock.settimeout(1.0)
     try:
         data, addr = sock.recvfrom(1024)

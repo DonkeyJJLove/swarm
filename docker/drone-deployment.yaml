@@ -21,5 +21,9 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.name
+            - name: AGGREGATOR_HOST
+              value: "aggregator-service"  # Adres agregatora
+            - name: AGGREGATOR_PORT
+              value: "5001"
           ports:
             - containerPort: 5000
