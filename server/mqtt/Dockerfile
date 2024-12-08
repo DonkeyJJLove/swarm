@@ -4,7 +4,9 @@ FROM python:3.11-slim
 WORKDIR /app
 COPY server/mqtt/mqtt_aggregator.py /app/mqtt_aggregator.py
 
-RUN pip install paho-mqtt
+# Instalacja zależności, jeśli są potrzebne (odkomentuj i dostosuj)
+COPY aggregator/requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 ENV MQTT_BROKER=mqtt-broker
 ENV MQTT_PORT=1883

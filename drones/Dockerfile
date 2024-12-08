@@ -3,8 +3,11 @@ FROM python:3.11-slim
 WORKDIR /app
 COPY drones/drone_logic.py /app/drone_logic.py
 
-# Jeśli potrzebujesz dodatkowych zależności:
-# RUN pip install <pakiety>
+# Instalacja zależności, jeśli są potrzebne (odkomentuj i dostosuj)
+COPY aggregator/requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+
 
 ENV DRONE_NAME="default_drone"
 ENV DRONE_PORT="5000"

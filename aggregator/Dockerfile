@@ -14,8 +14,8 @@ WORKDIR /app
 COPY aggregator/aggregator.py /app/aggregator.py
 
 # Instalacja zależności, jeśli są potrzebne (odkomentuj i dostosuj)
-# COPY requirements.txt /app/requirements.txt
-# RUN pip install --no-cache-dir -r requirements.txt
+COPY aggregator/requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Zdefiniowanie zmiennych środowiskowych z opisem
 ENV AGGREGATOR_PORT=5001
