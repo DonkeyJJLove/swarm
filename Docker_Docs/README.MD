@@ -1,4 +1,3 @@
-
 # Wprowadzenie do Docker i Kubernetes w Kontekście Chmur Hybrydowych
 
 ## Spis Treści
@@ -18,6 +17,7 @@
     - [5. Monitoring i Logowanie](#5-monitoring-i-logowanie)
     - [6. Best Practices w Kubernetes](#6-best-practices-w-kubernetes)
     - [Podsumowanie Kubernetes](#podsumowanie-kubernetes)
+    - [Zarządzanie Deploymentami w Kubernetes](#zarzadzanie-deploymentami-w-kubernetes)
 3. [Docker w Chmurach Hybrydowych](#docker-w-chmurach-hybrydowych)
     - [1. Co to jest Chmura Hybrydowa?](#1-co-to-jest-chmura-hybrydowa)
     - [2. Zalety Docker w Chmurach Hybrydowych](#2-zalety-docker-w-chmurach-hybrydowych)
@@ -314,6 +314,63 @@ spec:
 ### Podsumowanie Kubernetes
 
 Kubernetes jest potężnym narzędziem do zarządzania kontenerami w skali, oferując automatyzację wdrażania, skalowania i operacji. Jego integracja z Dockerem umożliwia efektywne zarządzanie aplikacjami w chmurach hybrydowych.
+
+### Zarządzanie Deploymentami w Kubernetes
+
+Aby wyłączyć (zatrzymać) Pody Kubernetes o nazwach `drone-swarm-b4cf65d45-*`, możesz usunąć ich Deployment, który je zarządza. Poniżej kroki, jak to zrobić:
+
+#### 1. Znajdź nazwę Deploymentu
+
+Z podanych nazw można wywnioskować, że Deployment nazywa się `drone-swarm`.
+
+Sprawdź nazwę Deploymentu za pomocą:
+
+```bash
+kubectl get deployments
+```
+
+Powinno wyświetlić coś podobnego do:
+
+```
+NAME           READY   UP-TO-DATE   AVAILABLE   AGE
+drone-swarm    5/5     5            5           92m
+```
+
+#### 2. Usuń Deployment
+
+Aby usunąć Deployment `drone-swarm`, wykonaj:
+
+```bash
+kubectl delete deployment drone-swarm
+```
+
+To polecenie usunie Deployment oraz wszystkie Pody nim zarządzane.
+
+#### 3. Sprawdź status Podów
+
+Możesz upewnić się, że Pody zostały usunięte, wykonując:
+
+```bash
+kubectl get pods
+```
+
+Jeśli Pody zostały usunięte, nie powinny już być widoczne na liście.
+
+---
+
+#### Alternatywnie: Skalowanie Deploymentu do zera
+
+Jeśli nie chcesz usuwać Deploymentu, ale chcesz zatrzymać Pody, możesz zmniejszyć liczbę replik do zera:
+
+```bash
+kubectl scale deployment drone-swarm --replicas=0
+```
+
+To polecenie zatrzyma wszystkie Pody, ale zachowa Deployment, co pozwala później łatwo zwiększyć liczbę replik:
+
+```bash
+kubectl scale deployment drone-swarm --replicas=5
+```
 
 ---
 
