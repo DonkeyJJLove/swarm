@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: drone-swarm
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: drone
+  template:
+    metadata:
+      labels:
+        app: drone
+    spec:
+      containers:
+        - name: drone
+          image: localhost:5000/mydrone:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: DRONE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          ports:
+            - containerPort: 5000
