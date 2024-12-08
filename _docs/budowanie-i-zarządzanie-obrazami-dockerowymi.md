@@ -386,6 +386,32 @@ aggregator-deployment  Deployment/aggregator-deployment 70%/80%   2         10  
 
 ---
 
+### **Skalowanie Deploymentu do zera**
+
+Jeśli nie chcesz usuwać Deploymentu, ale chcesz zatrzymać Pody, możesz zmniejszyć liczbę replik do zera:
+
+```bash
+kubectl scale deployment drone-swarm --replicas=0
+```
+
+To polecenie zatrzyma wszystkie Pody, ale zachowa Deployment, co pozwala później łatwo zwiększyć liczbę replik:
+
+```bash
+kubectl scale deployment drone-swarm --replicas=5
+```
+```
+
+## Opis poleceń
+
+- **`kubectl scale deployment <nazwa_deploymentu> --replicas=<liczba>`**  
+  Polecenie to służy do zmiany liczby replik dla określonego Deploymentu.
+
+  - `--replicas=0` zatrzymuje wszystkie Pody.
+  - `--replicas=5` uruchamia ponownie pięć replik.
+
+Dzięki tej metodzie nie tracisz definicji Deploymentu, a wznowienie działania jest szybkie i łatwe.
+```
+
 ## **Podsumowanie Skalowania**
 
 1. **Statyczne skalowanie** w pliku `Deployment` (`replicas`).

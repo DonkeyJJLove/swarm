@@ -1116,20 +1116,3 @@ kubectl get svc -n default -o json | ConvertFrom-Json | Select-Object -ExpandPro
 ```
 
 ---
-
-## Podsumowanie
-
-W tym artykule omówiliśmy zaawansowane techniki zarządzania rojem dronów w Kubernetes, w tym konfigurację headless service, implementację centralnego agregatora danych oraz alternatywne metody agregacji za pomocą message brokerów (MQTT) i HTTP REST API. Przedstawiliśmy także, jak usuwać zasoby w Kubernetes oraz jak rozwiązywać problemy związane z użyciem PowerShell.
-
-### Kluczowe Punkty:
-
-1. **Headless Service** w Kubernetes umożliwia service discovery, ale nie jest odpowiedni do centralnego zbierania danych w przypadku komunikacji UDP.
-2. **Centralny Agregator** może skutecznie zbierać dane od wszystkich dronów, zapewniając centralizację i łatwość przetwarzania danych.
-3. **Message Brokers** takie jak MQTT oferują skalowalne i efektywne metody publikacji/subskrypcji, idealne do komunikacji IoT.
-4. **HTTP REST API** jest prostym i wszechstronnym rozwiązaniem do zbierania danych, umożliwiając łatwą integrację z innymi systemami.
-5. **PowerShell** wymaga użycia alternatywnych komend do `grep`, takich jak `Select-String` lub `Where-Object`.
-
-Dzięki tym technikom możesz efektywnie zarządzać rojem dronów w Kubernetes, centralizować dane i zapewnić skalowalność oraz niezawodność swojego systemu.
-
----
-```

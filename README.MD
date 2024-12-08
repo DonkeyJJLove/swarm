@@ -165,8 +165,8 @@ Powyższa konfiguracja uruchamia trzy repliki Podów zawierających kontener z d
 1. **Infrastruktura jako kod (IaC)**: Wykorzystywanie narzędzi takich jak Terraform, Ansible lub Helm Chartów do zarządzania całym środowiskiem ułatwia powtarzalność i testowalność.
 2. **Obserwowalność**: Monitoring (Prometheus, Grafana), logowanie (ELK, Loki) i tracing (Jaeger) są niezbędne dla zrozumienia zachowania rozproszonego systemu i szybkiego reagowania na problemy.
 3. **Ciągłe testowanie i walidacja**: Testy integracyjne, testy bezpieczeństwa, skanowanie obrazów pod kątem luk (np. Trivy, Anchore) oraz analiza wydajności (np. K6) pozwalają na utrzymanie wysokiej jakości i bezpieczeństwa.
-4. **Cykl życia aplikacji**: Wykorzystywanie strategii blue-green deployment lub canary release do płynnego wdrażania nowych wersji bez przestoju.
-
+4. **Cykl życia aplikacji**: Wykorzystywanie strategii blue-green deployment lub canary release do płynnego wdrażania nowych wersji bez przestoju
+[[strategie wdrażania: Blue-Green Deployment i Canary Release](_docs/strategia_blue_green_canary.md)].
 ## Podsumowanie
 
 Technologie kontenerowe (Docker, Podman) oraz ich orkiestracja (Kubernetes) stanowią solidną platformę do tworzenia systemów wzorowanych na koncepcjach rojów dronów. Rozproszone podejmowanie decyzji, autonomiczność jednostek i emergentne zachowania to cechy, które sprawiają, że rój w chmurach może być efektywnie modelowany przy użyciu praktyk branżowych oraz dobrych praktyk DevOps i SRE (Site Reliability Engineering).
