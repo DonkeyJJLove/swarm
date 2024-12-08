@@ -118,7 +118,7 @@ FROM python:3.10
 WORKDIR /app
 
 # Kopiowanie plików
-COPY . /app
+COPY ../Docker_Docs /app
 
 # Instalacja zależności
 RUN pip install -r requirements.txt
