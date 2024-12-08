@@ -21,5 +21,6 @@ def run_aggregator():
         threading.Thread(target=handle_message, args=(data, addr)).start()
 
 
+
 if __name__ == "__main__":
     run_aggregator()
