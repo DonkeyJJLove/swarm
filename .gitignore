@@ -1,7 +1,2 @@
-/scripts/build_and_run.py
-/scripts/create_network.sh
-/scripts/dds_communication.py
-/scripts/manage_containers.py
-/scripts/nsga2_optimization.py
 /.venv/
 /.idea/
