@@ -1,4 +1,4 @@
-# Wprowadzenie do Docker i Kubernetes w Kontekście Chmur Hybrydowych
+# Wprowadzenie do Docker i Kubernetes - Chmury Hybrydowe
 
 ## Spis Treści
 
