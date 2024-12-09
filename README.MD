@@ -257,23 +257,57 @@ W celu monitorowania stanu dronów, brokerów MQTT oraz agregatora wykorzystujem
 
 ---
 
-## 4. Informacje z Istniejących Plików
-
-Projekt jest kompleksowym rozwiązaniem do symulacji roju dronów w środowisku kontenerowym i chmurowym. Informacje zawarte w pozostałych dokumentach:
-
-- **`_docs/budowanie-i-zarządzanie-obrazami-dockerowymi.md`**:  
-  Opisuje proces budowania obrazów Docker dla dronów, agregatora i brokera MQTT. Zawiera wskazówki dotyczące versioningu, wykorzystania rejestru obrazów (np. Docker Hub lub prywatnego repozytorium) oraz najlepsze praktyki, takie jak minimalizacja rozmiaru obrazów i stosowanie wieloetapowego budowania.
-
-- **`_docs/strategia_blue_green_canary.md`**:  
-  Opisuje strategie wdrożeń do środowiska produkcyjnego:
-  - **Blue-Green:** Umożliwia wdrożenie nowej wersji aplikacji równolegle do starej, a następnie przełączenie ruchu bez przestoju.
-  - **Canary:** Pozwala na stopniowe wdrażanie nowej wersji do niewielkiej części użytkowników, co umożliwia wczesne wykrycie problemów i minimalizuje ryzyko dla pozostałych.
-
-- **`_docs/readme.md`**:  
-  Zawiera ogólny opis projektu, jego cele i architekturę. Omawia kluczowe elementy – symulację roju dronów, komunikację za pomocą MQTT, wdrożenie w Kubernetes oraz elementy monitoringu i CI/CD. Jest to punkt wyjścia dla zrozumienia całej platformy.
+### **Dokumentacja Projektu: Symulacja Rojów Dronów**
 
 ---
 
+## **4. Informacje dodatkowe**
+
+Projekt jest kompleksowym rozwiązaniem do symulacji roju dronów w środowisku kontenerowym i chmurowym. Poniżej znajdują się odnośniki do istniejących dokumentów oraz ich krótki opis:
+
+---
+
+### **[`_docs/budowanie-i-zarządzanie-obrazami-dockerowymi.md`](./_docs/budowanie-i-zarządzanie-obrazami-dockerowymi.md)**
+
+- **Zawartość**:
+  - Szczegółowe instrukcje dotyczące tworzenia obrazów Docker dla dronów, serwera wizualizacyjnego i brokera MQTT.
+  - Wskazówki na temat **versioningu**, korzystania z rejestrów obrazów takich jak **Docker Hub** lub prywatne repozytoria.
+  - Najlepsze praktyki, w tym:
+    - **Minimalizacja rozmiaru obrazów**.
+    - **Wieloetapowe budowanie** (multi-stage builds).
+- **Zastosowanie**:
+  - Pomaga w efektywnym budowaniu i zarządzaniu obrazami Docker dla różnych komponentów projektu.
+
+---
+
+### **[`_docs/strategia_blue_green_canary.md`](./_docs/strategia_blue_green_canary.md)**
+
+- **Zawartość**:
+  - Opisuje strategie wdrożeń w środowisku produkcyjnym:
+    - **Blue-Green Deployment**:
+      - Równoległe wdrożenie nowej wersji aplikacji obok starej z możliwością bezprzerwowego przełączenia ruchu.
+    - **Canary Deployment**:
+      - Stopniowe wdrażanie nowej wersji do niewielkiej grupy użytkowników, co pozwala na wczesne wykrycie problemów.
+- **Zastosowanie**:
+  - Minimalizowanie ryzyka podczas wdrożeń nowych wersji aplikacji dla systemu zarządzającego rojem dronów.
+  - Optymalizacja procesów CI/CD.
+
+---
+
+### **[`_docs/readme.md`](./_docs/readme.md)**
+
+- **Zawartość**:
+  - Ogólny opis projektu, jego **cele** i **architekturę**.
+  - Szczegółowe omówienie kluczowych elementów:
+    - **Symulacja roju dronów** za pomocą kontenerów Docker.
+    - **Komunikacja** między dronami z wykorzystaniem protokołu MQTT lub DDS.
+    - **Wdrożenie** w środowisku Kubernetes.
+    - **Monitoring** i integracja z pipeline CI/CD.
+- **Zastosowanie**:
+  - Punkt wyjścia do zrozumienia projektu.
+  - Przewodnik dla nowych użytkowników i deweloperów.
+
+---
 
 ## Podsumowanie
 
