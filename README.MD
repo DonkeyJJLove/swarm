@@ -68,6 +68,7 @@ Projekt symulacji roju dronów wykorzystuje technologie konteneryzacji **Docker*
 - **Konfiguracja**:
   - **Deployment**: Wdrażany w Kubernetes jako usługa z wykorzystaniem Mosquitto.
 - **Pliki**: [Konfiguracja MQTT](server/mqtt/).
+- **Szczegółowe wyjaśnienie**: [Dokumentacja Brokera MQTT](./_docs/broker_mqtt.md)
 
 #### 3. **Agregator (`aggregator/`)**
 
@@ -81,6 +82,11 @@ Projekt symulacji roju dronów wykorzystuje technologie konteneryzacji **Docker*
   drones/+/position
   ```
 - **Pliki**: [Kod agregatora](aggregator/).
+- **Szczegółowe wyjaśnienie**: - **Dokumentacja**: [Szczegółowy opis agregatora](./_docs/aggregator_details.md)
+
+Oto zaktualizowana wersja punktu 4 w formie spójnej z punktem 3:
+
+---
 
 #### 4. **Aggregator API (`aggregator-api/`)**
 
@@ -88,15 +94,24 @@ Projekt symulacji roju dronów wykorzystuje technologie konteneryzacji **Docker*
 - **Funkcja**:
   - Udostępnia dane z agregatora za pomocą REST API.
   - Umożliwia zarządzanie rojem dronów i ich parametrami.
-- **Przykład endpointu**:
+  - Obsługuje żądania pobierania statusu dronów oraz wysyłania komend sterujących.
+- **Endpointy API**:
   ```http
   GET /api/drones/{drone_id}/status
+  POST /api/drones/{drone_id}/update
+  GET /api/drones
   ```
-- **Pliki**: [Kod API](aggregator-api/).
+- **Pliki**: [Kod API](aggregator-api/)
+- **Szczegółowe wyjaśnienie**: [Szczegółowy opis Aggregator API](./_docs/aggregator_api_details.md)
 
 ---
 
-## Szczegóły Komunikacji Sieciowej
+```markdown
+# Szczegóły Komunikacji Sieciowej i Wdrożenia
+
+## 1. Szczegóły Komunikacji Sieciowej
+
+W projekcie wykorzystujemy protokół MQTT do realizacji komunikacji pomiędzy dronami a agregatorem danych. Drony publikują informacje o swojej pozycji oraz stanie baterii do brokera MQTT, a agregator subskrybuje te dane, przetwarza je i udostępnia za pośrednictwem API.
 
 ### Przepływ Danych
 
@@ -105,28 +120,48 @@ Projekt symulacji roju dronów wykorzystuje technologie konteneryzacji **Docker*
    Topic: drones/{drone_id}/position
    Payload: { "x": 10, "y": 20, "battery": 95 }
    ```
+   W powyższym przykładzie `{drone_id}` reprezentuje unikalny identyfikator drona. Dron przekazuje informacje o swojej pozycji w formie współrzędnych `x`, `y` oraz o stanie baterii.
 
 2. **Agregator** subskrybuje odpowiednie topiki i odbiera dane:
-   ```
+   ```plaintext
    Subskrypcja: drones/+/position
    ```
+   Wzorzec `+/position` pozwala na odbiór komunikatów od wszystkich dronów publikujących swoją pozycję (znak `+` zastępuje jedno z poziomów tematu, w tym przypadku identyfikator drona).
 
 3. **Aggregator API** umożliwia dostęp do zebranych danych:
    ```http
    GET /api/drones/{drone_id}/status
    ```
+   Dzięki temu interfejsowi klienci zewnętrzni mogą pobierać aktualne informacje o stanie drona, takie jak jego pozycja czy poziom baterii.
 
 ### Przykład Konfiguracji Mosquitto
 
 Plik `mosquitto.conf`:
-```
+```plaintext
 listener 1883
 allow_anonymous true
 ```
 
+Konfiguracja powyżej uruchamia brokera MQTT na porcie `1883` i zezwala na anonimowy dostęp (co może być przydatne w środowiskach testowych lub w ramach klastra Kubernetes, ale w środowisku produkcyjnym warto rozważyć mechanizmy uwierzytelniania i autoryzacji).
+
+### Wyjaśnienie
+
+- **Jak działa komunikacja MQTT w projekcie?**  
+  MQTT to lekki protokół publikacja/subskrypcja. Drony (klienci MQTT) publikują dane o pozycji i stanie baterii na zdefiniowanych tematach. Broker MQTT odpowiada za dystrybucję tych danych do subskrybentów (np. agregatora), którzy chcą je odbierać.
+
+- **Zalety użycia MQTT w rozproszonej komunikacji:**  
+  - **Mały narzut danych** – idealny dla urządzeń IoT i środowisk o ograniczonej przepustowości.
+  - **Asynchroniczna komunikacja** – nadawca i odbiorca nie muszą być aktywni w tym samym czasie.
+  - **Elastyczne wzorce subskrypcji** – dzięki topikom możliwe jest filtrowanie i grupowanie komunikatów pochodzących od wielu źródeł.
+  
+- **Znaczenie topików MQTT i wzorców subskrypcji:**  
+  Topiki stanowią hierarchiczne adresy dla wiadomości. Dzięki nim można precyzyjnie określić, które dane chcemy odbierać. Wzorce, takie jak `+/position`, pozwalają na subskrybowanie wielu dronów jednocześnie bez konieczności ich indywidualnej konfiguracji.
+
 ---
 
-## Wdrożenie w Kubernetes
+## 2. Wdrożenie w Kubernetes
+
+Wykorzystanie Kubernetes do wdrożenia dronów, agregatora oraz brokera MQTT zapewnia skalowalność, automatyzację i niezawodność. Kubernetes umożliwia łatwe zarządzanie kontenerami, skalowanie replik, a także automatyczne restarty i aktualizacje.
 
 ### Zasoby Kubernetes
 
@@ -155,6 +190,9 @@ spec:
           value: "mqtt-service"
 ```
 
+- **Co to jest Deployment?**  
+  Deployment zarządza cyklem życia zestawu replik (ReplicaSet) dla danej aplikacji. W powyższym przykładzie uruchamiamy 3 repliki kontenera `drone-simulation`. Kubernetes zapewnia utrzymanie stałej liczby replik, ich automatyczne restarty w przypadku awarii oraz wdrażanie aktualizacji bez przestojów.
+
 #### Przykład Service dla MQTT
 
 ```yaml
@@ -171,21 +209,71 @@ spec:
       targetPort: 1883
 ```
 
+- **Co to jest Service?**  
+  Service w Kubernetes definiuje stały punkt dostępu (DNS i port) do zestawu kontenerów (podów). W naszym przypadku `mqtt-service` kieruje ruch do podów z etykietą `app: mqtt`, które uruchamiają brokera MQTT. Dzięki temu drony i agregator mogą łączyć się z brokerem bez względu na to, jakie konkretnie pody aktualnie go obsługują.
+
+### Korzyści ze stosowania Kubernetes
+
+- **Skalowalność:** Możemy łatwo zwiększać lub zmniejszać liczbę replik dronów czy brokera MQTT w zależności od obciążenia.
+- **Odporność na awarie:** W razie padnięcia kontenera Kubernetes automatycznie uruchomi nowy.
+- **Prostota zarządzania:** Infrastruktura jako kod oraz deklaratywne podejście ułatwiają wdrażanie, aktualizacje oraz utrzymanie aplikacji.
+
 ---
 
-## CI/CD i Monitoring
+## 3. CI/CD i Monitoring
 
 ### CI/CD
 
-- **Pipeline** automatyzuje budowanie obrazów Docker, testowanie i wdrożenie w Kubernetes.
-- Narzędzia: **GitLab CI/CD**, **Jenkins**, **ArgoCD**.
+W projekcie wykorzystywany jest pipeline CI/CD do automatyzacji procesu budowania, testowania oraz wdrażania aplikacji na klaster Kubernetes. 
+
+- **Jak działa pipeline CI/CD?**  
+  Pipeline CI/CD, np. oparty o GitLab CI/CD, Jenkins czy ArgoCD, automatyzuje kolejne kroki:  
+  1. **Budowanie:** Tworzenie obrazów Docker z kodu źródłowego.
+  2. **Testowanie:** Uruchamianie testów jednostkowych, integracyjnych i wydajnościowych.
+  3. **Wdrożenie:** Aktualizacja zasobów w klastrze Kubernetes (Deployment, Service itp.).
+
+- **Narzędzia:**  
+  - **GitLab CI/CD:** Integracja z repozytorium kodu, uruchamianie pipeline po każdym pushu.
+  - **Jenkins:** Elastyczny serwer CI, możliwość integracji z wieloma środowiskami.
+  - **ArgoCD:** Narzędzie do ciągłego wdrażania (CD) w Kubernetes, deklaratywne zarządzanie stanem aplikacji.
+
+- **Konfiguracja pipeline:**  
+  Pipeline można skonfigurować poprzez pliki YAML (np. `.gitlab-ci.yml` lub pliki konfiguracyjne Jenkins/ArgoCD). W nich określamy kolejne kroki, obraz bazowy, komendy budowania i testowania oraz działania wdrożeniowe (aplikacja manifestów Kubernetes).
 
 ### Monitoring
 
-- **Prometheus** i **Grafana** do monitorowania metryk.
-- **ELK Stack** do logowania i analizy zdarzeń.
+W celu monitorowania stanu dronów, brokerów MQTT oraz agregatora wykorzystujemy narzędzia do zbierania i wizualizacji metryk oraz logów:
+
+- **Prometheus i Grafana:**  
+  Prometheus zbiera metryki z aplikacji i infrastruktury, a Grafana umożliwia ich wizualizację w formie dashboardów. Monitorowane metryki obejmują m.in. zużycie CPU, pamięci, stan baterii dronów, liczbę przetworzonych komunikatów MQTT czy dostępność usług.
+
+- **ELK Stack (Elasticsearch, Logstash, Kibana):**  
+  ELK Stack umożliwia zbieranie, przetwarzanie i analizę logów. Dzięki Logstash logi są parsowane i przekazywane do Elasticsearch, gdzie mogą być przeszukiwane i analizowane. Kibana umożliwia wygodne przeglądanie logów oraz tworzenie wizualizacji i dashboardów analitycznych.
+
+- **Konfiguracja monitoringu:**  
+  - **Prometheus:** Wdrażany jako Deployment w Kubernetes, poprzez `ServiceMonitor` może automatycznie wykrywać usługi do monitorowania.
+  - **Grafana:** Instaluje się poprzez helm chart lub manifesty YAML, konfigurując dashboardy do wizualizacji metryk.
+  - **ELK Stack:** Wdrażany przy pomocy manifestów Kubernetes (lub operatorów), zapewnia centralne miejsce do gromadzenia i analizy logów z dronów, agregatora i brokera.
 
 ---
+
+## 4. Informacje z Istniejących Plików
+
+Projekt jest kompleksowym rozwiązaniem do symulacji roju dronów w środowisku kontenerowym i chmurowym. Informacje zawarte w pozostałych dokumentach:
+
+- **`_docs/budowanie-i-zarządzanie-obrazami-dockerowymi.md`**:  
+  Opisuje proces budowania obrazów Docker dla dronów, agregatora i brokera MQTT. Zawiera wskazówki dotyczące versioningu, wykorzystania rejestru obrazów (np. Docker Hub lub prywatnego repozytorium) oraz najlepsze praktyki, takie jak minimalizacja rozmiaru obrazów i stosowanie wieloetapowego budowania.
+
+- **`_docs/strategia_blue_green_canary.md`**:  
+  Opisuje strategie wdrożeń do środowiska produkcyjnego:
+  - **Blue-Green:** Umożliwia wdrożenie nowej wersji aplikacji równolegle do starej, a następnie przełączenie ruchu bez przestoju.
+  - **Canary:** Pozwala na stopniowe wdrażanie nowej wersji do niewielkiej części użytkowników, co umożliwia wczesne wykrycie problemów i minimalizuje ryzyko dla pozostałych.
+
+- **`_docs/readme.md`**:  
+  Zawiera ogólny opis projektu, jego cele i architekturę. Omawia kluczowe elementy – symulację roju dronów, komunikację za pomocą MQTT, wdrożenie w Kubernetes oraz elementy monitoringu i CI/CD. Jest to punkt wyjścia dla zrozumienia całej platformy.
+
+---
+
 
 ## Podsumowanie
 
