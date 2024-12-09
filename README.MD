@@ -275,14 +275,16 @@ spec:
 
 ## 4. Informacje z Istniejących Plików
 
-- **`_docs/budowanie-i-zarządzanie-obrazami-dockerowymi.md`**  
-  Szczegółowy przewodnik dotyczący budowania i zarządzania obrazami Docker, w tym multi-stage builds, strategie wersjonowania oraz zarządzanie repozytoriami.
+Poniżej znajdują się odnośniki do istniejących dokumentów w katalogu `_docs/` oraz opis ich zawartości:
 
-- **`_docs/strategia_blue_green_canary.md`**  
-  Kompleksowy przegląd strategii wdrożeń Blue-Green oraz Canary, włączając kroki implementacji i najlepsze praktyki.
+- [**`_docs/budowanie-i-zarządzanie-obrazami-dockerowymi.md`**](./_docs/budowanie-i-zarządzanie-obrazami-dockerowymi.md)  
+  Budowanie i zarządzanie obrazami Docker (multi-stage builds, versioning, repozytoria).
 
-- **`_docs/readme.md`**  
-  Ogólny opis projektu obejmujący symulację roju dronów, komunikację MQTT, wdrożenie w Kubernetes, konfigurację monitoringu oraz konfigurację pipeline'ów CI/CD.
+- [**`_docs/strategia_blue_green_canary.md`**](./_docs/strategia_blue_green_canary.md)  
+  Strategie wdrożeń Blue-Green i Canary.
+
+- [**`_docs/readme.md`**](./_docs/readme.md)  
+  Ogólny opis projektu: symulacja roju, komunikacja MQTT, wdrożenie, monitoring, CI/CD.
 
 ---
 
