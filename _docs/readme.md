@@ -1332,3 +1332,9 @@ W tej dokumentacji przeanalizowaliśmy zaawansowane aspekty zarządzania ekosyst
 - **Docker w chmurach hybrydowych**: Zalety, przykłady zastosowań oraz integracja z głównymi platformami chmurowymi.
 - **Zaawansowane zarządzanie rojem dronów**: Konfiguracja headless service, implementacja agregatora danych, usuwanie usług Mosquitto oraz alternatywne podejścia do agregacji danych.
 - **Opis projektu**: Idea, koncepcja, architektura, integracja oraz rola modeli AI w projekcie.
+
+---
+
+**Plik:** `_docs/readme.md`
+
+[Powrót do głównej dokumentacji](../README.MD)

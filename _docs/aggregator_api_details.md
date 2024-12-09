@@ -164,3 +164,5 @@ if __name__ == '__main__':
 ---
 
 **Plik:** `_docs/aggregator_api_details.md`
+
+[Powrót do głównej dokumentacji](../README.MD)

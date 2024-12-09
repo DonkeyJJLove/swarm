@@ -176,3 +176,9 @@ client.loop_forever()
 ## Podsumowanie
 
 Komponent dronów stanowi kluczowy element systemu symulacji roju dronów, umożliwiając generowanie danych i elastyczną komunikację z innymi usługami za pomocą MQTT. Dzięki wdrożeniu w Kubernetes drony są łatwo skalowalne i zarządzalne.
+
+---
+
+**Plik:** `_docs/drones_component.md`
+
+[Powrót do głównej dokumentacji](../README.MD)

@@ -165,4 +165,8 @@ kubectl set image deployment/my-app my-app=my-app:stable --record
 
 Stosowanie strategii **blue-green deployment** i **canary release** w Kubernetes pozwala na płynne i bezpieczne wdrażanie nowych wersji aplikacji bez przestojów. Dzięki nim można zminimalizować ryzyko związane z aktualizacjami, zapewniając ciągłość działania usług dla użytkowników końcowych.
 
+---
 
+**Plik:** `_docs/rstrategia_blue_green_canary.md`
+
+[Powrót do głównej dokumentacji](../README.MD)

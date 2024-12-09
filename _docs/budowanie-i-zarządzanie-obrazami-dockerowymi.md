@@ -627,3 +627,9 @@ Ten samouczek przeprowadził Cię przez proces zarządzania ekosystemem MQTT w �
 - **Najlepsze praktyki i rozwiązywanie najczęstszych problemów.**
 
 Dzięki tym informacjom jesteś dobrze przygotowany, aby skutecznie zarządzać i skalować swoje aplikacje MQTT w Kubernetes. Pamiętaj o regularnym monitorowaniu swojego środowiska oraz stosowaniu najlepszych praktyk, aby zapewnić stabilność i wydajność swoich usług.
+
+---
+
+**Plik:** `_docs/budowanie-i-zarządzanie-obrazami-dockerowymi.md`
+
+[Powrót do głównej dokumentacji](../README.MD)

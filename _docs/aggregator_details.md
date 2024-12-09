@@ -135,5 +135,6 @@ spec:
    - **Rozwiązanie**: Sprawdź konfigurację subskrypcji MQTT i upewnij się, że drony publikują dane na właściwych *topicach*.
 
 ---
+**Plik:** `_docs/aggregator_details.md`
 
 [Powrót do głównej dokumentacji](../README.MD)
