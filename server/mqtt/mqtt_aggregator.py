@@ -4,6 +4,7 @@ import paho.mqtt.client as mqtt
 MQTT_BROKER = os.getenv("MQTT_BROKER", "mqtt-broker")
 MQTT_PORT = int(os.getenv("MQTT_PORT", "1883"))
 
+
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
         print(f"Connected to MQTT Broker at {MQTT_BROKER}:{MQTT_PORT}", flush=True)
@@ -11,9 +12,11 @@ def on_connect(client, userdata, flags, rc):
     else:
         print(f"Failed to connect, return code {rc}", flush=True)
 
+
 def on_message(client, userdata, msg):
     message = msg.payload.decode()
     print(f"Received: {message}", flush=True)
+
 
 print("Starting mqtt_aggregator...", flush=True)
 

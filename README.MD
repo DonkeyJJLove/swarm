@@ -1,4 +1,4 @@
-# Dokumentacja Projektu: Symulacja Rojów Dronów w Architekturze Kontenerowej
+# Symulacja Rojów Dronów w Architekturze Kontenerowej
 
 Zarządzanie rojem dronów w środowisku chmurowym to złożony, wielowymiarowy proces, który integruje zaawansowane techniki konteneryzacji, orkiestracji, komunikacji oraz inteligentnego sterowania. Głównym celem jest traktowanie każdego drona jako niezależnego kontenera, co umożliwia jego autonomiczne działanie oraz płynną komunikację z innymi dronami i komponentami systemu. Wykorzystanie podejścia chmurowego pozwala na dynamiczne skalowanie liczby dronów w zależności od aktualnych potrzeb, automatyzację procesów wdrażania i aktualizacji oraz zastosowanie zaawansowanych narzędzi do monitoringu i analizy danych.
 
