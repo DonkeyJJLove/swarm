@@ -7,7 +7,7 @@ MQTT_PORT = int(os.getenv("MQTT_PORT", "1883"))
 
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
-        print(f"Connected to MQTT Broker at {MQTT_BROKER}:{MQTT_PORT}", flush=True)
+        print(f"Connected to MQTT Broker at {MQTT_BROKER}:{MQTT_PORT} frome {client}", flush=True)
         client.subscribe("drone/positions")
     else:
         print(f"Failed to connect, return code {rc}", flush=True)
