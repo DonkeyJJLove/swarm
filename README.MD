@@ -182,24 +182,6 @@ Architektura systemu symulacji roju dronów w środowisku kontenerowym i chmurow
    - Użytkownik korzysta z web dashboardu do monitorowania roju dronów w czasie rzeczywistym.
    - Dashboard umożliwia również wysyłanie komend sterujących, zarządzanie dronami oraz przeglądanie historii danych.
 
-### **Integracja z Innych Dokumentów**
-
-Architektura systemu jest szczegółowo opisana w różnych dokumentach, które można znaleźć w katalogu `_docs/`. Poniżej znajdują się odnośniki do kluczowych dokumentów:
-
-- [Zaawansowany Kurs Docker](#zaawansowany-kurs-docker)
-- [Kubernetes – Orkiestracja Kontenerów](#kubernetes---orkiestracja-kontenerow)
-- [Docker w Chmurach Hybrydowych](#docker-w-chmurach-hybrydowych)
-- [Strategia Blue-Green i Canary](./_docs/strategia_blue_green_canary.md)
-- [Budowanie i Zarządzanie Obrazami Dockerowymi](./_docs/budowanie-i-zarządzanie-obrazami-dockerowymi.md)
-- [Ogólny Opis Projektu](./_docs/readme.md)
-- [Dokumentacja Brokera MQTT](./_docs/broker_mqtt.md)
-- [Szczegółowy opis agregatora](./_docs/aggregator_details.md)
-- [Szczegółowy opis Aggregator API](./_docs/aggregator_api_details.md)
-- [Dokumentacja Bazy Danych](./_docs/database.md)
-- [Dokumentacja Frontend](./_docs/frontend.md)
-
----
-
 ## Szczegóły Komunikacji Sieciowej i Wdrożenia
 
 ### 1. Szczegóły Komunikacji Sieciowej
