@@ -141,3 +141,9 @@ W projekcie wykorzystywane są następujące *topiki*:
 
 Broker MQTT jest kluczowym elementem komunikacji w projekcie symulacji roju dronów. Zapewnia niezawodną, asynchroniczną wymianę danych pomiędzy dronami a innymi komponentami systemu.
 
+
+---
+
+**Plik:** `_docs/broker_mqtt.md`
+
+[Powrót do głównej dokumentacji](../README.MD)
