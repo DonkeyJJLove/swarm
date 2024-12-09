@@ -182,6 +182,40 @@ Architektura systemu symulacji roju dronów w środowisku kontenerowym i chmurow
    - Użytkownik korzysta z web dashboardu do monitorowania roju dronów w czasie rzeczywistym.
    - Dashboard umożliwia również wysyłanie komend sterujących, zarządzanie dronami oraz przeglądanie historii danych.
 
+---
+
+## Komunikacja i Percepcja Dronów
+
+### **Komunikacja Dronów**
+
+Komunikacja między dronami a centralnymi komponentami systemu odbywa się za pośrednictwem protokołu MQTT. Drony działają jako klienci MQTT, publikując swoje dane na określonych topikach, a centralny broker MQTT (np. Mosquitto) zarządza dystrybucją tych danych do subskrybentów, takich jak agregator.
+
+#### **Główne Aspekty Komunikacji:**
+
+- **Niezawodność:** MQTT zapewnia niezawodną transmisję danych dzięki mechanizmowi potwierdzeń wiadomości.
+- **Efektywność:** Protokół jest lekki, co minimalizuje narzut sieciowy, idealny dla środowisk o ograniczonej przepustowości.
+- **Asynchroniczność:** Umożliwia komunikację bez konieczności jednoczesnej obecności nadawcy i odbiorcy, zwiększając elastyczność systemu.
+- **Bezpieczeństwo:** Zastosowanie TLS do szyfrowania komunikacji oraz mechanizmów uwierzytelniania zapewnia ochronę danych przed nieautoryzowanym dostępem.
+
+### **Percepcja Dronów**
+
+Percepcja dronów odnosi się do zdolności dronów do zbierania i analizowania informacji o swoim otoczeniu, co jest kluczowe dla ich autonomicznego działania.
+
+#### **Główne Elementy Percepcji:**
+
+- **Sensory:** Drony są wyposażone w różnorodne sensory, takie jak kamery, lidar, GPS, czujniki ruchu i inne, które umożliwiają zbieranie danych o otoczeniu.
+- **Przetwarzanie Danych:** Zebrane dane są przetwarzane lokalnie w dronach za pomocą wbudowanych algorytmów, co pozwala na szybką analizę i podejmowanie decyzji w czasie rzeczywistym.
+- **Integracja z Systemem Centralnym:** Dane z percepcji są również przesyłane do centralnych komponentów systemu (np. agregatora), co umożliwia bardziej zaawansowaną analizę i koordynację działań roju.
+- **Adaptacyjność:** Algorytmy percepcji pozwalają dronom na adaptację do zmieniających się warunków środowiskowych, takich jak zmiany pogody, przeszkody czy dynamika ruchu.
+
+#### **Zastosowania Percepcji:**
+
+- **Unikanie Kolizji:** Dzięki danym z sensorów drony mogą unikać kolizji zarówno z innymi dronami, jak i przeszkodami w otoczeniu.
+- **Nawigacja:** Precyzyjna nawigacja w przestrzeni dzięki integracji danych GPS i innych sensorów.
+- **Zbieranie Danych:** Percepcja umożliwia dronom zbieranie istotnych danych środowiskowych, co jest przydatne w różnych zastosowaniach, takich jak monitorowanie środowiska, inspekcje infrastruktury czy akcje ratunkowe.
+
+---
+
 ## Szczegóły Komunikacji Sieciowej i Wdrożenia
 
 ### 1. Szczegóły Komunikacji Sieciowej
@@ -327,36 +361,6 @@ spec:
 
 ---
 
-## Informacje z Istniejących Plików
-
-Poniżej znajdują się odnośniki do istniejących dokumentów w katalogu `_docs/` oraz opis ich zawartości:
-
-- [**`_docs/budowanie-i-zarządzanie-obrazami-dockerowymi.md`**](./_docs/budowanie-i-zarządzanie-obrazami-dockerowymi.md)  
-  Budowanie i zarządzanie obrazami Docker (multi-stage builds, versioning, repozytoria).
-
-- [**`_docs/strategia_blue_green_canary.md`**](./_docs/strategia_blue_green_canary.md)  
-  Strategie wdrożeń Blue-Green i Canary.
-
-- [**`_docs/readme.md`**](./_docs/readme.md)  
-  Ogólny opis projektu: symulacja roju, komunikacja MQTT, wdrożenie, monitoring, CI/CD.
-
-- [**`_docs/broker_mqtt.md`**](./_docs/broker_mqtt.md)  
-  Szczegółowa Dokumentacja Brokera MQTT.
-
-- [**`_docs/aggregator_details.md`**](./_docs/aggregator_details.md)  
-  Szczegółowy opis agregatora.
-
-- [**`_docs/aggregator_api_details.md`**](./_docs/aggregator_api_details.md)  
-  Szczegółowy opis Aggregator API.
-
-- [**`_docs/database.md`**](./_docs/database.md)  
-  Dokumentacja Bazy Danych.
-
-- [**`_docs/frontend.md`**](./_docs/frontend.md)  
-  Dokumentacja Frontend.
-
----
-
 ## Implementacja Logiki i Sterowania
 
 Po skonfigurowaniu klastra Kubernetes oraz stworzeniu i skalowaniu dronów, następnym krokiem jest implementacja logiki zarządzającej oraz sterującej dronami za pomocą niskopoziomowych API.
@@ -422,6 +426,23 @@ Aby dowiedzieć się więcej o konkretnych aspektach implementacji, takich jak z
 
 ---
 
+## Informacje z Istniejących Plików
+
+Poniżej znajduje się tabela zawierająca odnośniki do istniejących dokumentów w katalogu `_docs/` oraz ich opisy:
+
+| **Dokument**                                       | **Link**                                                                                   | **Opis**                                                         |
+|----------------------------------------------------|--------------------------------------------------------------------------------------------|------------------------------------------------------------------|
+| Budowanie i zarządzanie obrazami Dockerowymi       | [budowanie-i-zarządzanie-obrazami-dockerowymi.md](./_docs/budowanie-i-zarządzanie-obrazami-dockerowymi.md) | Budowanie i zarządzanie obrazami Docker (multi-stage builds, versioning, repozytoria). |
+| Strategie wdrożeń Blue-Green i Canary             | [strategia_blue_green_canary.md](./_docs/strategia_blue_green_canary.md)                  | Strategie wdrożeń Blue-Green i Canary.                          |
+| Ogólny opis projektu                               | [readme.md](./_docs/readme.md)                                                            | Ogólny opis projektu: symulacja roju, komunikacja MQTT, wdrożenie, monitoring, CI/CD. |
+| Dokumentacja Brokera MQTT                          | [broker_mqtt.md](./_docs/broker_mqtt.md)                                                  | Szczegółowa Dokumentacja Brokera MQTT.                           |
+| Szczegółowy opis agregatora                        | [aggregator_details.md](./_docs/aggregator_details.md)                                    | Szczegółowy opis agregatora.                                     |
+| Szczegółowy opis Aggregator API                    | [aggregator_api_details.md](./_docs/aggregator_api_details.md)                            | Szczegółowy opis Aggregator API.                                 |
+| Dokumentacja Bazy Danych                           | [database.md](./_docs/database.md)                                                        | Dokumentacja Bazy Danych.                                        |
+| Dokumentacja Frontend                               | [frontend.md](./_docs/frontend.md)                                                        | Dokumentacja Frontend.                                            |
+
+---
+
 ## Odnośniki
 
 - [Zaawansowany Kurs Docker](#zaawansowany-kurs-docker)
@@ -438,3 +459,27 @@ Aby dowiedzieć się więcej o konkretnych aspektach implementacji, takich jak z
 
 ---
 
+## Implementacja Logiki i Sterowania
+
+Po skonfigurowaniu klastra Kubernetes oraz stworzeniu i skalowaniu dronów, następnym krokiem jest implementacja logiki zarządzającej oraz sterującej dronami za pomocą niskopoziomowych API.
+
+### Komponenty Zaangażowane
+
+- **Decyzje Autonomiczne:**
+  - **Wbudowana Logika:** Każdy dron (pod) posiada własną logikę, która umożliwia podejmowanie decyzji na podstawie danych wejściowych oraz warunków środowiskowych.
+  - **Algorytmy Zachowań:** Algorytmy decydują o ruchach drona, priorytetyzacji zadań oraz reakcjach na zewnętrzne komendy.
+
+- **Bezpieczeństwo Kontenerów:**
+  - **Izolacja:** Zapewnienie, że każdy kontener drona działa w izolacji, co chroni przed nieautoryzowanym dostępem i utrzymuje integralność systemu.
+  - **Polityki Bezpieczeństwa:** Implementacja ścisłych polityk bezpieczeństwa, które zabezpieczają kontenery przed podatnościami i atakami.
+
+- **Monitorowanie i Logowanie:**
+  - **Integracja z Prometheus:** Zbieranie metryk dotyczących wydajności dronów oraz stanu systemu.
+  - **Dashboardy Grafana:** Tworzenie wizualizacji metryk w czasie rzeczywistym dla efektywnego monitorowania i analizy.
+  - **Centralne Logowanie:** Agregacja logów ze wszystkich dronów i komponentów systemu w celu kompleksowego rozwiązywania problemów.
+
+- **Skalowalność:**
+  - **Polityki Auto-Scaling:** Automatyczne dostosowywanie liczby instancji dronów w odpowiedzi na bieżące metryki i zdefiniowane progi.
+  - **Optymalizacja Zasobów:** Zapewnienie optymalnego wykorzystania zasobów chmurowych poprzez skalowanie dronów w zależności od zmieniających się warunków i obciążeń.
+
+---
