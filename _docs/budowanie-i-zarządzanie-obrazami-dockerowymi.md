@@ -1,421 +1,317 @@
-## **I. Budowanie i Zarządzanie Obrazami Dockerowymi**
+# Dokumentacja Zarządzania Ekosystemem MQTT (Broker & Aggregator) w Docker i Kubernetes
 
-### **Krok 1: Pobieranie Obrazu Bazowego**
+## Spis treści
 
-Pobierz obraz bazowy dla środowiska Python 3.11.
+1. [Wprowadzenie](#wprowadzenie)  
+2. [Zarządzanie Obrazami i Rejestrem Docker](#zarządzanie-obrazami-i-rejestrem-docker)  
+    - [Uruchomienie Lokalnego Rejestru Docker](#uruchomienie-lokalnego-rejestru-docker)  
+    - [Budowanie Obrazów](#budowanie-obrazów)  
+    - [Tagowanie i Push Obrazów do Rejestru](#tagowanie-i-push-obrazów-do-rejestru)  
+    - [Czyszczenie Obrazów i Kontenerów](#czyszczenie-obrazów-i-kontenerów)
+3. [Struktura Projektu i Pliki Konfiguracyjne](#struktura-projektu-i-pliki-konfiguracyjne)  
+    - [Dockerfile, requirements.txt, mqtt_aggregator.py, mosquitto.conf](#dockerfile-requirementstxt-mqtt_aggregatorpy-mosquittoconf)
+4. [Wdrażanie do Kubernetes](#wdrażanie-do-kubernetes)  
+    - [Zastosowanie ConfigMap dla Mosquitto](#zastosowanie-configmap-dla-mosquitto)  
+    - [Deployment i Service dla mqtt-broker](#deployment-i-service-dla-mqtt-broker)  
+    - [Deployment dla mqtt-aggregator z initContainer](#deployment-dla-mqtt-aggregator-z-initcontainer)
+5. [Monitorowanie i Debugowanie w Kubernetes](#monitorowanie-i-debugowanie-w-kubernetes)  
+    - [Sprawdzanie Podów i Usług](#sprawdzanie-podów-i-usług)  
+    - [Logi Podów i Deploymentów](#logi-podów-i-deploymentów)  
+    - [Describe i Debugowanie Problemów z Połączeniem](#describe-i-debugowanie-problemów-z-połączeniem)
+6. [Aktualizacja i Rollout](#aktualizacja-i-rollout)  
+    - [Aktualizacja Obrazu w Deployment](#aktualizacja-obrazu-w-deployment)  
+    - [Rollback do Poprzedniej Wersji](#rollback-do-poprzedniej-wersji)
+7. [Skalowanie Deploymentów w Kubernetes](#skalowanie-deploymentów-w-kubernetes)  
+    - [Statyczne Skalowanie](#statyczne-skalowanie)  
+    - [Dynamiczne Skalowanie za pomocą kubectl scale](#dynamiczne-skalowanie-za-pomocą-kubectl-scale)  
+    - [Automatyczne Skalowanie (HPA)](#automatyczne-skalowanie-hpa)
+8. [Troubleshooting i Najlepsze Praktyki](#troubleshooting-i-najlepsze-praktyki)  
+    - [Brak Logów w Kontenerze](#brak-logów-w-kontenerze)  
+    - [Problemy z Połączeniem MQTT](#problemy-z-połączeniem-mqtt)  
+    - [Nadpisywanie Komend Startowych](#nadpisywanie-komend-startowych)
+
+---
+
+## Wprowadzenie
+
+Dokument ten prezentuje kompleksowy zestaw instrukcji i najlepszych praktyk dotyczących zarządzania ekosystemem aplikacji w oparciu o Docker i Kubernetes. W przykładzie wykorzystujemy `mqtt-broker` (Mosquitto) i `mqtt-aggregator` do ilustrowania procesów tworzenia obrazów, wdrażania w Kubernetes, skalowania i debugowania.
+
+---
+
+## Zarządzanie Obrazami i Rejestrem Docker
+
+### Uruchomienie Lokalnego Rejestru Docker
+
+Aby korzystać z własnego, lokalnego rejestru obrazów:
 
 ```bash
-docker pull python:3.11-slim
+docker run -d -p 5000:5000 --restart always --name registry registry:2
+```
+
+Sprawdzenie zawartości rejestru:
+
+```bash
+curl http://localhost:5000/v2/_catalog
 ```
 
 ---
 
-### **Krok 2: Struktura Projektu**
+### Budowanie Obrazów
 
-Przygotuj strukturę projektu z następującymi katalogami i plikami:
+Przykładowe polecenie budowania obrazu `mqtt-aggregator`:
+
+```bash
+docker build -t mqtt-aggregator:latest .
+```
+
+Upewnij się, że posiadasz odpowiednie `Dockerfile` oraz pozostałe pliki źródłowe w tym samym katalogu.
+
+---
+
+### Tagowanie i Push Obrazów do Rejestru
+
+Po zbudowaniu obrazu otaguj go, aby wskazać lokalny rejestr:
+
+```bash
+docker tag mqtt-aggregator:latest localhost:5000/mqtt-aggregator:latest
+docker push localhost:5000/mqtt-aggregator:latest
+```
+
+---
+
+### Czyszczenie Obrazów i Kontenerów
+
+Usuwanie nieużywanych obrazów i kontenerów:
+
+```bash
+docker rm -f <nazwa_kontenera>       # usuwa kontener
+docker rmi <nazwa_obrazu>:<tag>      # usuwa obraz
+docker image prune -a -f             # usuwa wszystkie nieużywane obrazy
+```
+
+---
+
+## Struktura Projektu i Pliki Konfiguracyjne
+
+Przykładowa struktura katalogu:
 
 ```
 dockerBotnet/
-│-- aggregator/
-│   └── aggregator.py
-│   └── Dockerfile
-│-- drones/
-│   └── drone_service.py
-│   └── Dockerfile
-│-- server/
-│   └── mqtt/
-│       └── mqtt_aggregator.py
-│       └── Dockerfile
-│-- .dockerignore
-│-- requirements.txt
+├─ server/
+│  └─ mqtt/
+│     ├─ mqtt_aggregator.py
+│     ├─ requirements.txt
+│     ├─ Dockerfile
+│     ├─ mosquitto.conf
+│     ├─ mosquitto-deployment.yaml
+│     ├─ mosquitto-service.yaml
+│     └─ mqtt_aggregator-deployment.yaml
 ```
+
+### Dockerfile, requirements.txt, mqtt_aggregator.py, mosquitto.conf
+
+- **`requirements.txt`**: zawiera zależności np. `paho-mqtt==1.6.1`
+- **`mqtt_aggregator.py`**: skrypt Python łączący się z brokerem, subskrybujący tematy i logujący otrzymane wiadomości.
+- **`mosquitto.conf`**: konfiguracja Mosquitto (np. `listener 1883` i `allow_anonymous true`), aby broker akceptował połączenia spoza localhost.
+- **`Dockerfile`**: definiuje proces budowy obrazu zawierającego kod `mqtt_aggregator.py` i instalującego zależności.
 
 ---
 
-### **Krok 3: Plik `.dockerignore`**
+## Wdrażanie do Kubernetes
 
-Stwórz plik `.dockerignore`, aby wykluczyć niepotrzebne pliki z budowania obrazu.
+### Zastosowanie ConfigMap dla Mosquitto
 
-**Przykładowa zawartość `.dockerignore`:**
-
-```
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-*.log
-.env
-```
-
----
-
-### **Krok 4: Tworzenie `Dockerfile`**
-
-#### **`Dockerfile` dla Agregatora**
-
-**Lokalizacja:** `aggregator/Dockerfile`
-
-```dockerfile
-FROM python:3.11-slim
-
-WORKDIR /app
-
-COPY aggregator.py /app/aggregator.py
-COPY ../requirements.txt /app/requirements.txt
-
-RUN pip install --no-cache-dir -r requirements.txt
-
-CMD ["python", "aggregator.py"]
-```
-
-#### **`Dockerfile` dla Drona**
-
-**Lokalizacja:** `drones/Dockerfile`
-
-```dockerfile
-FROM python:3.11-slim
-
-WORKDIR /app
-
-COPY drone_service.py /app/drone_service.py
-COPY ../requirements.txt /app/requirements.txt
-
-RUN pip install --no-cache-dir -r requirements.txt
-
-CMD ["python", "drone_service.py"]
-```
-
-#### **`Dockerfile` dla Brokera MQTT**
-
-**Lokalizacja:** `server/mqtt/Dockerfile`
-
-```dockerfile
-FROM python:3.11-slim
-
-WORKDIR /app
-
-COPY mqtt_aggregator.py /app/mqtt_aggregator.py
-COPY ../../requirements.txt /app/requirements.txt
-
-RUN pip install --no-cache-dir -r requirements.txt
-
-CMD ["python", "mqtt_aggregator.py"]
-```
-
----
-
-### **Krok 5: Budowanie Obrazów Dockerowych**
-
-#### **Budowanie Obrazu Agregatora**
+Tworzenie ConfigMap z pliku `mosquitto.conf`:
 
 ```bash
-docker build -t data-aggregator:1.0 -f aggregator/Dockerfile .
+kubectl create configmap mosquitto-config --from-file=mosquitto.conf
 ```
 
-#### **Budowanie Obrazu Drona**
+### Deployment i Service dla mqtt-broker
 
-```bash
-docker build -t drone-service:1.0 -f drones/Dockerfile .
-```
-
-#### **Budowanie Obrazu Brokera MQTT**
-
-```bash
-docker build -t mqtt-broker:1.0 -f server/mqtt/Dockerfile .
-```
-
----
-
-### **Krok 6: Sprawdzanie Dostępnych Obrazów**
-
-```bash
-docker images
-```
-
-**Przykładowy wynik:**
-
-```
-REPOSITORY        TAG     IMAGE ID       CREATED         SIZE
-data-aggregator   1.0     2f794fd50176   13 minutes ago  194MB
-drone-service     1.0     eae909d517a4   2 hours ago     194MB
-mqtt-broker       1.0     48fc7ef99f73   3 hours ago     212MB
-```
-
----
-
-### **Krok 7: Uruchamianie Kontenerów**
-
-#### **Uruchomienie Agregatora**
-
-```bash
-docker run -d --name data-aggregator-container -p 5001:5001 data-aggregator:1.0
-```
-
-#### **Uruchomienie Drona**
-
-```bash
-docker run -d --name drone-service-container -p 5000:5000 drone-service:1.0
-```
-
-#### **Uruchomienie Brokera MQTT**
-
-```bash
-docker run -d --name mqtt-broker-container -p 1883:1883 mqtt-broker:1.0
-```
-
----
-
-### **Krok 8: Sprawdzanie Uruchomionych Kontenerów**
-
-```bash
-docker ps
-```
-
----
-
-### **Krok 9: Usuwanie Kontenerów i Obrazów**
-
-#### **Usuwanie Kontenera**
-
-```bash
-docker rm -f data-aggregator-container
-```
-
-#### **Usuwanie Obrazu**
-
-```bash
-docker rmi data-aggregator:1.0
-```
-
----
-
-## **2. Wdrażanie do Kubernetes**
-
-### **Manifest Deployment dla Agregatora**
-
-**Plik:** `aggregator-deployment.yaml`
+**`mosquitto-deployment.yaml`:**
 
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: aggregator-deployment
+  name: mqtt-broker
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: aggregator
+      app: mqtt-broker
   template:
     metadata:
       labels:
-        app: aggregator
+        app: mqtt-broker
     spec:
+      volumes:
+        - name: config-volume
+          configMap:
+            name: mosquitto-config
       containers:
-        - name: aggregator
-          image: localhost:5000/data-aggregator:1.0
+        - name: mqtt-broker
+          image: eclipse-mosquitto:latest
+          volumeMounts:
+            - name: config-volume
+              mountPath: /mosquitto/config
           ports:
-            - containerPort: 5001
+            - containerPort: 1883
 ```
 
-### **Manifest Service dla Agregatora**
-
-**Plik:** `aggregator-service.yaml`
+**`mosquitto-service.yaml`:**
 
 ```yaml
 apiVersion: v1
 kind: Service
 metadata:
-  name: aggregator-service
+  name: mqtt-broker
 spec:
   selector:
-    app: aggregator
+    app: mqtt-broker
   ports:
-    - port: 5001
-      targetPort: 5001
+    - port: 1883
+      targetPort: 1883
 ```
 
-### **Zastosowanie Manifestów**
+Zastosowanie:
 
 ```bash
-kubectl apply -f aggregator-deployment.yaml
-kubectl apply -f aggregator-service.yaml
+kubectl apply -f mosquitto-deployment.yaml
+kubectl apply -f mosquitto-service.yaml
 ```
 
----
+### Deployment dla mqtt-aggregator z initContainer
 
-## **3. Monitorowanie i Debugowanie**
-
-### **Sprawdzenie Statusu Podów**
-
-```bash
-kubectl get pods
-```
-
-### **Logi Podów**
-
-```bash
-kubectl logs <nazwa-poda>
-```
-
-### **Szczegółowy Opis Podów**
-
-```bash
-kubectl describe pods
-```
-
----
-
-### **Podsumowanie Kroków**
-
-1. **Budowanie obrazów Dockerowych**:
-
-   ```bash
-   docker build -t data-aggregator:1.0 -f aggregator/Dockerfile .
-   docker build -t drone-service:1.0 -f drones/Dockerfile .
-   docker build -t mqtt-broker:1.0 -f server/mqtt/Dockerfile .
-   ```
-
-2. **Wdrażanie do Kubernetes**:
-
-   ```bash
-   kubectl apply -f aggregator-deployment.yaml
-   kubectl apply -f aggregator-service.yaml
-   ```
-
-3. **Monitorowanie i debugowanie**:
-
-   ```bash
-   kubectl get pods
-   kubectl logs <nazwa-poda>
-   ``` 
-
-### **Dodanie Skalowania w Kubernetes**
-
----
-
-## **II. Skalowanie Deploymentów w Kubernetes**
-
-Skalowanie pozwala dostosować liczbę replik do potrzeb wydajnościowych. Możemy to zrobić na dwa sposoby:
-
-1. **Statyczne skalowanie za pomocą deklaracji w manifeście.**
-2. **Dynamiczne skalowanie za pomocą komendy `kubectl scale`.**
-
----
-
-### **1. Statyczne Skalowanie w Manifeście**
-
-Możesz ustawić liczbę replik w pliku `Deployment`.
-
-#### **Przykład Skalowalnego Deploymentu dla Agregatora**
-
-**Plik:** `aggregator-deployment.yaml`
+**`mqtt_aggregator-deployment.yaml`:**
 
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: aggregator-deployment
+  name: mqtt-aggregator
 spec:
-  replicas: 3  # Skalowanie na 3 repliki
+  replicas: 1
   selector:
     matchLabels:
-      app: aggregator
+      app: mqtt-aggregator
   template:
     metadata:
       labels:
-        app: aggregator
+        app: mqtt-aggregator
     spec:
+      initContainers:
+        - name: wait-for-mqtt
+          image: nicolaka/netshoot
+          command: ['sh', '-c', 'until nc -z mqtt-broker 1883; do echo waiting for mqtt-broker; sleep 2; done']
       containers:
-        - name: aggregator
-          image: localhost:5000/data-aggregator:1.0
-          ports:
-            - containerPort: 5001
+        - name: mqtt-aggregator
+          image: localhost:5000/mqtt-aggregator:latest
+          env:
+            - name: MQTT_BROKER
+              value: "mqtt-broker"
+            - name: MQTT_PORT
+              value: "1883"
+```
+
+Zastosowanie:
+
+```bash
+kubectl apply -f mqtt_aggregator-deployment.yaml
 ```
 
 ---
 
-### **2. Dynamiczne Skalowanie z `kubectl`**
+## Monitorowanie i Debugowanie w Kubernetes
 
-Możesz również skalować Deployment w czasie rzeczywistym za pomocą komendy `kubectl scale`.
-
-#### **Skalowanie na 5 Replik**
+### Sprawdzanie Podów i Usług
 
 ```bash
-kubectl scale deployment aggregator-deployment --replicas=5
+kubectl get pods
+kubectl get services
 ```
 
-#### **Sprawdzenie Aktualnej Liczby Replik**
+### Logi Podów i Deploymentów
 
 ```bash
-kubectl get deployment aggregator-deployment
+kubectl logs deployment/mqtt-aggregator
+kubectl logs pod/<nazwa-poda>
 ```
 
-**Przykładowy wynik:**
+### Describe i Debugowanie Problemów z Połączeniem
 
+```bash
+kubectl describe pod <nazwa-poda>
 ```
-NAME                   READY   UP-TO-DATE   AVAILABLE   AGE
-aggregator-deployment  5/5     5            5           2m
+
+Pozwala zdiagnozować problemy z uruchamianiem, volumeMountami, itp.
+
+---
+
+## Aktualizacja i Rollout
+
+### Aktualizacja Obrazu w Deployment
+
+Po zbudowaniu nowego obrazu:
+
+```bash
+docker push localhost:5000/mqtt-aggregator:latest
+
+kubectl set image deployment/mqtt-aggregator mqtt-aggregator=localhost:5000/mqtt-aggregator:latest
+```
+
+### Rollback do Poprzedniej Wersji
+
+Jeśli aktualizacja powoduje problemy:
+
+```bash
+kubectl rollout undo deployment/mqtt-aggregator
 ```
 
 ---
 
-### **Automatyczne Skalowanie (HPA - Horizontal Pod Autoscaler)**
+## Skalowanie Deploymentów w Kubernetes
 
-Możesz również skonfigurować automatyczne skalowanie na podstawie zużycia zasobów (CPU i RAM).
+### Statyczne Skalowanie
 
-#### **Utworzenie Autoscalera**
+Modyfikacja `replicas` w manifeście `Deployment`:
 
-**Przykład:** Skalowanie od 2 do 10 replik, gdy użycie CPU przekroczy 80%.
+```yaml
+spec:
+  replicas: 3
+```
+
+### Dynamiczne Skalowanie za pomocą `kubectl scale`
 
 ```bash
-kubectl autoscale deployment aggregator-deployment --min=2 --max=10 --cpu-percent=80
+kubectl scale deployment mqtt-aggregator --replicas=5
 ```
 
-#### **Sprawdzenie Statusu Autoscalera**
+### Automatyczne Skalowanie (HPA)
 
 ```bash
-kubectl get hpa
-```
-
-**Przykładowy wynik:**
-
-```
-NAME                   REFERENCE                         TARGETS   MINPODS   MAXPODS   REPLICAS   AGE
-aggregator-deployment  Deployment/aggregator-deployment 70%/80%   2         10        4          5m
+kubectl autoscale deployment mqtt-aggregator --min=2 --max=10 --cpu-percent=80
 ```
 
 ---
 
-### **Skalowanie Deploymentu do zera**
+## Troubleshooting i Najlepsze Praktyki
 
-Jeśli nie chcesz usuwać Deploymentu, ale chcesz zatrzymać Pody, możesz zmniejszyć liczbę replik do zera:
+### Brak Logów w Kontenerze
 
-```bash
-kubectl scale deployment drone-swarm --replicas=0
-```
+- Dodaj `ENV PYTHONUNBUFFERED=1` w `Dockerfile` aby wymusić natychmiastowe wypisywanie logów.
+- Upewnij się, że kod został zaktualizowany i wdrożony (`kubectl rollout restart ...`).
+- Dodaj `print()` na początku skryptu, aby sprawdzić, czy skrypt w ogóle startuje.
 
-To polecenie zatrzyma wszystkie Pody, ale zachowa Deployment, co pozwala później łatwo zwiększyć liczbę replik:
+### Problemy z Połączeniem MQTT
 
-```bash
-kubectl scale deployment drone-swarm --replicas=5
-```
-```
+- Sprawdź ConfigMap i `mosquitto.conf`, aby broker akceptował połączenia spoza localhost.
+- Sprawdź `initContainer` z `nc`, czy może połączyć się z `mqtt-broker`.
+- Upewnij się, że `mqtt-broker` i `mqtt-aggregator` są w tym samym namespace.
 
-## Opis poleceń
+### Nadpisywanie Komend Startowych
 
-- **`kubectl scale deployment <nazwa_deploymentu> --replicas=<liczba>`**  
-  Polecenie to służy do zmiany liczby replik dla określonego Deploymentu.
+- Sprawdź, czy w `yaml` dla Deploymentów nie ma `command` lub `args` nadpisujących `CMD` z Dockerfile.
 
-  - `--replicas=0` zatrzymuje wszystkie Pody.
-  - `--replicas=5` uruchamia ponownie pięć replik.
-
-Dzięki tej metodzie nie tracisz definicji Deploymentu, a wznowienie działania jest szybkie i łatwe.
-```
-
-## **Podsumowanie Skalowania**
-
-1. **Statyczne skalowanie** w pliku `Deployment` (`replicas`).
-2. **Dynamiczne skalowanie** za pomocą komendy `kubectl scale`.
-3. **Automatyczne skalowanie** z użyciem Horizontal Pod Autoscaler (HPA).
-
-Dzięki tym metodom możesz dostosować wydajność swojej aplikacji do aktualnych potrzeb.
+---

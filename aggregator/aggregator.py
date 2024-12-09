@@ -1,4 +1,3 @@
-#aggregator.py
 import socket
 import threading
 

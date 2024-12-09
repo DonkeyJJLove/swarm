@@ -2,10 +2,11 @@ import os
 import socket
 import time
 import random
+import uuid
 
-DRONE_NAME = os.getenv("DRONE_NAME", f"drone_{random.randint(1000, 9999)}")
-AGGREGATOR_HOST = os.getenv("AGGREGATOR_HOST", "aggregator-service")  # Nazwa DNS agregatora w Kubernetes
-AGGREGATOR_PORT = int(os.getenv("AGGREGATOR_PORT", "5001"))
+# Pobranie DRONE_NAME z zmiennej środowiskowej lub wygenerowanie unikalnej nazwy
+DRONE_NAME = os.getenv("DRONE_NAME", f"drone_{uuid.uuid4().hex[:8]}")
+DRONE_PORT = int(os.getenv("DRONE_PORT", "5000"))
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 

@@ -4,7 +4,7 @@ metadata:
   name: mqtt-broker
 spec:
   selector:
-    app: mosquitto
+    app: mqtt-broker
   ports:
     - port: 1883
       targetPort: 1883

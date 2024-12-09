@@ -2,7 +2,7 @@
 FROM python:3.11-slim
 
 # Ustawienie metadanych obrazu
-LABEL maintainer="Twoje Imię <twoj.email@domena.com>"
+LABEL maintainer="d2j3.com>"
 LABEL version="1.0"
 LABEL description="Obraz agregatora danych, który uruchamia skrypt aggregator.py"
 LABEL application="data-aggregator"
