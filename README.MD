@@ -1,9 +1,34 @@
+Przepraszam za wcześniejsze niedopatrzenia. Poniżej znajduje się zaktualizowana wersja pliku `README.MD`, która zawiera:
+
+1. **Dodanie sekcji "2. Zaawansowany Kurs Docker"** wraz z wszystkimi podsekcjami.
+2. **Zaktualizowany spis treści**, uwzględniający nowe sekcje i podsekcje.
+3. **Odniesienia do szczegółowych dokumentów** w katalogu `_docs/`, umożliwiające łatwą nawigację do bardziej szczegółowych informacji.
+4. **Usunięcie sekcji "Wkład w Projekt"** zgodnie z wcześniejszym życzeniem.
+
+Zachowano spójne formatowanie oraz strukturę dokumentacji, aby była czytelna i łatwa do nawigacji.
+
+---
+
 # Dokumentacja Zarządzania Ekosystemem MQTT (Broker & Aggregator) w Docker i Kubernetes
 
 ## Spis Treści
 
 1. [Wprowadzenie](#1-wprowadzenie)
 2. [Zaawansowany Kurs Docker](#2-zaawansowany-kurs-docker)
+    - [2.1 Podstawowe Komendy Docker (Szybkie Przypomnienie)](#21-podstawowe-komendy-docker-szybkie-przypomnienie)
+    - [2.2 Zarządzanie Kontenerami](#22-zarz%C4%85dzanie-kontenerami)
+    - [2.3 Budowanie i Optymalizacja Obrazów](#23-budowanie-i-optymalizacja-obraz%C3%B3w)
+        - [2.3.1 Przykładowy Dockerfile](#231-przyk%C5%82adowy-dockerfile)
+        - [2.3.2 Budowanie Obrazu](#232-budowanie-obrazu)
+        - [2.3.3 Optymalizacja Obrazów](#233-optymalizacja-obraz%C3%B3w)
+    - [2.4 Docker Compose](#24-docker-compose)
+        - [2.4.1 docker-compose.yml – Przykład](#241-docker-composeyml--przyk%C5%82ad)
+        - [2.4.2 Uruchamianie Docker Compose](#242-uruchamianie-docker-compose)
+    - [2.5 Woluminy i Sieci](#25-woluminy-i-sieci)
+        - [2.5.1 Woluminy](#251-woluminy)
+        - [2.5.2 Sieci](#252-sieci)
+    - [2.6 Docker w Produkcji i Best Practices](#26-docker-w-produkcji-i-best-practices)
+    - [Podsumowanie](#podsumowanie)
 3. [Kubernetes – Orkiestracja Kontenerów](#3-kubernetes---orkiestracja-kontenerow)
 4. [Docker w Chmurach Hybrydowych](#4-docker-w-chmurach-hybrydowych)
 5. [Zarządzanie Rojem Dronów w Kubernetes](#5-zarz%C4%85dzanie-rojem-dron%C3%B3w-w-kubernetes)
@@ -37,11 +62,9 @@
     - [Testy Jednostkowe](#testy-jednostkowe)
     - [Testy Integracyjne](#testy-integracyjne)
     - [Testy End-to-End](#testy-end-to-end)
-14. [Wkład w Projekt](#14-wk%C3%B3d-w-projekt)
-15. [Licencja](#15-licencja)
-16. [Informacje z Istniejących Plików](#16-informacje-z-istniej%C4%85cych-plik%C3%B3w)
-17. [Odnośniki](#17-odno%C5%9Bniki)
-18. [Uwagi](#18-uwagi)
+14. [Licencja](#14-licencja)
+15. [Informacje z Istniejących Plików](#15-informacje-z-istniej%C4%85cych-plik%C3%B3w)
+16. [Odnośniki](#16-odno%C5%9Bniki)
 
 ---
 
@@ -242,112 +265,77 @@ Architektura systemu symulacji roju dronów w środowisku kontenerowym i chmurow
 
 ## 2. Zaawansowany Kurs Docker
 
-### Budowanie i Zarządzanie Obrazami Dockerowymi
+W tej sekcji omówione zostaną zaawansowane aspekty korzystania z Docker, które są kluczowe dla efektywnego wdrażania i utrzymania aplikacji w środowisku kontenerowym.
 
-W tej sekcji omówione zostaną zaawansowane techniki budowania oraz zarządzania obrazami Dockerowymi, które są kluczowe dla efektywnego wdrażania i utrzymania aplikacji w środowisku kontenerowym.
+### 2.1 Podstawowe Komendy Docker (Szybkie Przypomnienie)
 
-#### Multi-Stage Builds
+Krótki przegląd podstawowych komend Docker, które są niezbędne do zarządzania kontenerami, obrazami i sieciami.
 
-Multi-stage builds pozwalają na tworzenie zoptymalizowanych obrazów Dockerowych, eliminując zbędne warstwy i zmniejszając rozmiar końcowego obrazu. Dzięki temu można oddzielić etapy budowania aplikacji od jej uruchamiania, co poprawia bezpieczeństwo i wydajność.
+- [Szczegółowy opis](./_docs/readme.md#21-podstawowe-komendy-docker-szybkie-przypomnienie)
 
-```dockerfile
-# Etap budowania
-FROM golang:1.16 AS builder
-WORKDIR /app
-COPY . .
-RUN go build -o main .
+### 2.2 Zarządzanie Kontenerami
 
-# Etap uruchamiania
-FROM alpine:latest
-WORKDIR /root/
-COPY --from=builder /app/main .
-CMD ["./main"]
-```
+Zaawansowane techniki zarządzania kontenerami, w tym tworzenie, uruchamianie, zatrzymywanie oraz usuwanie kontenerów.
 
-#### Versioning i Repozytoria
+- [Szczegółowy opis](./_docs/readme.md#22-zarz%C4%85dzanie-kontenerami)
 
-Zarządzanie wersjami obrazów Dockerowych jest kluczowe dla utrzymania spójności środowisk oraz kontroli nad wdrażanymi zmianami. Najlepiej jest stosować semantyczne wersjonowanie (semver) oraz przechowywać obrazy w dedykowanych repozytoriach, takich jak Docker Hub, AWS ECR czy Google Container Registry.
+### 2.3 Budowanie i Optymalizacja Obrazów
 
-```bash
-# Tagowanie obrazu
-docker build -t swarm/drone:1.0.0 .
+#### 2.3.1 Przykładowy Dockerfile
 
-# Pushowanie do Docker Hub
-docker push swarm/drone:1.0.0
-```
+Przykład Dockerfile pokazujący, jak zdefiniować obraz Dockerowy dla aplikacji.
 
-#### Automatyzacja i CI/CD
+- [Szczegółowy opis](./_docs/readme.md#231-przyk%C5%82adowy-dockerfile)
 
-Integracja z narzędziami CI/CD pozwala na automatyczne budowanie, testowanie i wdrażanie obrazów Dockerowych przy każdej zmianie w kodzie. Przykładowo, używając GitHub Actions, można skonfigurować pipeline, który buduje i pushuje obrazy do repozytorium.
+#### 2.3.2 Budowanie Obrazu
 
-```yaml
-name: CI/CD Pipeline
+Instrukcje dotyczące budowania obrazów Dockerowych na podstawie Dockerfile.
 
-on:
-  push:
-    branches: [ main ]
+- [Szczegółowy opis](./_docs/readme.md#232-budowanie-obrazu)
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v1
-    - name: Login to Docker Hub
-      uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
-    - name: Build and push
-      uses: docker/build-push-action@v2
-      with:
-        push: true
-        tags: swarm/drone:1.0.0
-```
+#### 2.3.3 Optymalizacja Obrazów
 
-### Zarządzanie Obrazami
+Metody optymalizacji obrazów Dockerowych w celu zmniejszenia ich rozmiaru i poprawy wydajności.
 
-#### Multi-Stage Builds
+- [Szczegółowy opis](./_docs/readme.md#233-optymalizacja-obraz%C3%B3w)
 
-Multi-stage builds to technika umożliwiająca tworzenie zoptymalizowanych obrazów Dockerowych poprzez oddzielenie etapów budowania od etapu uruchamiania. Pozwala to na eliminację niepotrzebnych plików i zależności w końcowym obrazie, co zmniejsza jego rozmiar i zwiększa bezpieczeństwo.
+### 2.4 Docker Compose
 
-```dockerfile
-# Etap budowania
-FROM node:14 AS builder
-WORKDIR /app
-COPY package*.json ./
-RUN npm install
-COPY . .
-RUN npm run build
+#### 2.4.1 docker-compose.yml – Przykład
 
-# Etap uruchamiania
-FROM nginx:alpine
-COPY --from=builder /app/build /usr/share/nginx/html
-```
+Przykładowy plik `docker-compose.yml` ilustrujący konfigurację usług.
 
-#### Versioning i Repozytoria
+- [Szczegółowy opis](./_docs/readme.md#241-docker-composeyml--przyk%C5%82ad)
 
-Stosowanie semantycznego wersjonowania (semver) pozwala na łatwe zarządzanie wersjami obrazów Dockerowych. Przechowywanie obrazów w dedykowanych repozytoriach zapewnia centralne miejsce do ich dystrybucji i zarządzania.
+#### 2.4.2 Uruchamianie Docker Compose
 
-```bash
-# Tagowanie obrazu
-docker build -t swarm/drone:1.0.0 .
+Kroki niezbędne do uruchomienia i zarządzania usługami za pomocą Docker Compose.
 
-# Pushowanie do Docker Hub
-docker push swarm/drone:1.0.0
-```
+- [Szczegółowy opis](./_docs/readme.md#242-uruchamianie-docker-compose)
 
-#### Zarządzanie Repozytoriami
+### 2.5 Woluminy i Sieci
 
-Używanie dedykowanych repozytoriów, takich jak Docker Hub, AWS ECR czy Google Container Registry, umożliwia centralne zarządzanie obrazami Dockerowymi, kontrolę dostępu oraz integrację z narzędziami CI/CD.
+#### 2.5.1 Woluminy
 
-```bash
-# Pushowanie do AWS ECR
-aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 123456789012.dkr.ecr.us-west-2.amazonaws.com
-docker tag swarm/drone:1.0.0 123456789012.dkr.ecr.us-west-2.amazonaws.com/drone:1.0.0
-docker push 123456789012.dkr.ecr.us-west-2.amazonaws.com/drone:1.0.0
-```
+Zarządzanie danymi trwałymi przy użyciu woluminów Dockerowych.
+
+- [Szczegółowy opis](./_docs/readme.md#251-woluminy)
+
+#### 2.5.2 Sieci
+
+Konfiguracja i zarządzanie sieciami Dockerowymi w celu zapewnienia komunikacji między kontenerami.
+
+- [Szczegółowy opis](./_docs/readme.md#252-sieci)
+
+### 2.6 Docker w Produkcji i Best Practices
+
+Najlepsze praktyki stosowane podczas wdrażania Docker w środowiskach produkcyjnych, w tym bezpieczeństwo, monitorowanie i skalowanie.
+
+- [Szczegółowy opis](./_docs/readme.md#26-docker-w-produkcji-i-best-practices)
+
+### Podsumowanie
+
+Sekcja ta dostarcza zaawansowaną wiedzę na temat Docker, umożliwiając efektywne wykorzystanie kontenerów w projekcie zarządzania rojem dronów. Zapewnienie optymalnych obrazów, skuteczne zarządzanie kontenerami oraz stosowanie najlepszych praktyk jest kluczowe dla skalowalności i niezawodności systemu.
 
 ---
 
@@ -525,6 +513,26 @@ Architektura systemu symulacji roju dronów w środowisku kontenerowym i chmurow
   ```
 - **Pliki:** [Kod API](aggregator-api/)
 - **Szczegółowe Wyjaśnienie:** [Szczegółowy opis Aggregator API](./_docs/aggregator_api_details.md)
+
+#### 5. **Baza Danych (`database/`)**
+
+- **Rola:** Przechowywanie zebranych danych z dronów.
+- **Funkcje:**
+  - **Przechowywanie Danych:** Gromadzi i przechowuje dane dotyczące pozycji, stanu baterii oraz innych parametrów dronów.
+  - **Zapytania i Analizy:** Umożliwia wykonywanie zapytań oraz analizowanie danych w celu optymalizacji działania roju.
+- **Technologie:** PostgreSQL, MySQL lub inne relacyjne bazy danych.
+- **Pliki:** [Konfiguracja bazy danych](database/)
+- **Szczegółowe Wyjaśnienie:** [Dokumentacja Bazy Danych](./_docs/database.md)
+
+#### 6. **Interfejs Użytkownika (`frontend/`)**
+
+- **Rola:** Dostarczanie wizualizacji i interakcji dla użytkowników systemu.
+- **Funkcje:**
+  - **Web Dashboard:** Wizualizacja danych z roju dronów, monitorowanie ich stanu w czasie rzeczywistym.
+  - **Interakcje:** Umożliwia użytkownikom wysyłanie komend sterujących, zarządzanie dronami oraz analizowanie zgromadzonych danych.
+- **Technologie:** React, Angular, Vue.js lub inne frameworki frontendowe.
+- **Pliki:** [Kod interfejsu użytkownika](frontend/)
+- **Szczegółowe Wyjaśnienie:** [Dokumentacja Frontend](./_docs/frontend.md)
 
 ---
 
@@ -813,47 +821,18 @@ Testy end-to-end symulują pełny przepływ danych w systemie, od drona do inter
 
 ---
 
-## 14. Wkład w Projekt
-
-Twój wkład w projekt jest bardzo mile widziany! Aby zacząć, wykonaj następujące kroki:
-
-1. **Fork Repozytorium:** Kliknij przycisk "Fork" na stronie repozytorium [swarm](https://github.com/DonkeyJJLove/swarm.git).
-2. **Stwórz Nową Gałąź:** Utwórz nową gałąź dla swoich zmian:
-   ```bash
-   git checkout -b feature/nazwa-funkcjonalnosci
-   ```
-3. **Wprowadź Zmiany:** Wprowadź swoje zmiany i dokonaj commitów:
-   ```bash
-   git commit -m "Opis wprowadzonych zmian"
-   ```
-4. **Wypchnij Zmiany:** Wypchnij swoje zmiany do swojego forka:
-   ```bash
-   git push origin feature/nazwa-funkcjonalnosci
-   ```
-5. **Utwórz Pull Request:** Przejdź do oryginalnego repozytorium [swarm](https://github.com/DonkeyJJLove/swarm.git) i utwórz Pull Request, opisując wprowadzone zmiany.
-
-### Zasady Wkładu
-
-- **Kultura Wkładu:** Zachowuj się uprzejmie i z szacunkiem wobec innych członków społeczności.
-- **Styl Kodowania:** Staraj się przestrzegać istniejących standardów kodowania używanych w projekcie.
-- **Testy:** Upewnij się, że wszystkie nowe funkcje są pokryte testami jednostkowymi i integracyjnymi.
-- **Dokumentacja:** Aktualizuj dokumentację, jeśli wprowadzasz zmiany wpływające na użytkowników lub deweloperów.
-
----
-
-## 15. Licencja
+## 14. Licencja
 
 Projekt jest licencjonowany na podstawie licencji MIT. Możesz znaleźć szczegółowe informacje w pliku [LICENSE](./LICENSE).
 
 ---
 
-## 16. Informacje z Istniejących Plików
+## 15. Informacje z Istniejących Plików
 
 Poniżej znajduje się tabela zawierająca odnośniki do istniejących dokumentów w katalogu `_docs/` oraz ich opisy:
 
 | **Dokument**                                       | **Link**                                                                                   | **Opis**                                                         |
 |----------------------------------------------------|--------------------------------------------------------------------------------------------|------------------------------------------------------------------|
-| Budowanie i zarządzanie obrazami Dockerowymi       | [budowanie-i-zarządzanie-obrazami-dockerowymi.md](./_docs/budowanie-i-zarządzanie-obrazami-dockerowymi.md) | Budowanie i zarządzanie obrazami Docker (multi-stage builds, versioning, repozytoria). |
 | Strategie wdrożeń Blue-Green i Canary             | [strategia_blue_green_canary.md](./_docs/strategia_blue_green_canary.md)                  | Strategie wdrożeń Blue-Green i Canary.                          |
 | Ogólny opis projektu                               | [ogolny-opis-projektu.md](./_docs/ogolny-opis-projektu.md)                                | Ogólny opis projektu: symulacja roju, komunikacja MQTT, wdrożenie, monitoring, CI/CD. |
 | Dokumentacja Brokera MQTT                          | [broker_mqtt.md](./_docs/broker_mqtt.md)                                                  | Szczegółowa Dokumentacja Brokera MQTT.                           |
@@ -866,13 +845,12 @@ Poniżej znajduje się tabela zawierająca odnośniki do istniejących dokument�
 
 ---
 
-## 17. Odnośniki
+## 16. Odnośniki
 
 - [Wprowadzenie do Docker i Kubernetes - Chmury Hybrydowe](./_docs/readme.md)
 - [Kubernetes – Orkiestracja Kontenerów](#3-kubernetes---orkiestracja-kontenerow)
 - [Docker w Chmurach Hybrydowych](#4-docker-w-chmurach-hybrydowych)
 - [Strategia Blue-Green i Canary](./_docs/strategia_blue_green_canary.md)
-- [Budowanie i Zarządzanie Obrazami Dockerowymi](./_docs/budowanie-i-zarządzanie-obrazami-dockerowymi.md)
 - [Ogólny Opis Projektu](./_docs/ogolny-opis-projektu.md)
 - [Dokumentacja Brokera MQTT](./_docs/broker_mqtt.md)
 - [Szczegółowy opis agregatora](./_docs/aggregator_details.md)
@@ -882,4 +860,3 @@ Poniżej znajduje się tabela zawierająca odnośniki do istniejących dokument�
 - [Dokumentacja Dronów](./_docs/drones_component.md)
 - [Idea i Koncepcja](./_docs/idea-i-koncepcja.md)
 
----
