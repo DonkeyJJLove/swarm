@@ -1,14 +1,3 @@
-Przepraszam za wcześniejsze niedopatrzenia. Poniżej znajduje się zaktualizowana wersja pliku `README.MD`, która zawiera:
-
-1. **Dodanie sekcji "2. Zaawansowany Kurs Docker"** wraz z wszystkimi podsekcjami.
-2. **Zaktualizowany spis treści**, uwzględniający nowe sekcje i podsekcje.
-3. **Odniesienia do szczegółowych dokumentów** w katalogu `_docs/`, umożliwiające łatwą nawigację do bardziej szczegółowych informacji.
-4. **Usunięcie sekcji "Wkład w Projekt"** zgodnie z wcześniejszym życzeniem.
-
-Zachowano spójne formatowanie oraz strukturę dokumentacji, aby była czytelna i łatwa do nawigacji.
-
----
-
 # Dokumentacja Zarządzania Ekosystemem MQTT (Broker & Aggregator) w Docker i Kubernetes
 
 ## Spis Treści
@@ -139,128 +128,6 @@ Architektura projektu została zaprojektowana w celu zapewnienia modularności, 
   - **Ochrona Danych:** Autonomiczne drony komunikujące się w rozproszonym środowisku chmurowym muszą być chronione przed nieautoryzowanym dostępem, atakami i wyciekami danych.
   - **Zaawansowane Środki Bezpieczeństwa:** Konieczne jest wdrożenie solidnych polityk bezpieczeństwa, mechanizmów uwierzytelniania oraz technik szyfrowania, aby zabezpieczyć system przed potencjalnymi zagrożeniami.
 
-### Architektura Systemu
-
-Architektura systemu symulacji roju dronów w środowisku kontenerowym i chmurowym została zaprojektowana w celu zapewnienia skalowalności, elastyczności oraz niezawodności. System składa się z kilku kluczowych komponentów, które współpracują ze sobą, umożliwiając efektywne zarządzanie dronami, komunikację oraz analizę danych.
-
-#### Diagram Architektury
-
-```
-                           +-------------------------------+
-                           |         Broker MQTT          |
-                           |         (Mosquitto)          |
-                           +-------------------------------+
-                                         ^
-                                         |
-           +-----------------------------+-----------------------------+
-           |                             |                             |
-+----------v----------+     +----------v----------+     +----------v----------+
-|       Dron 1        |     |       Dron 2        |     |       Dron N        |
-| Publikuje dane MQTT |     | Publikuje dane MQTT |     | Publikuje dane MQTT |
-+---------------------+     +---------------------+     +---------------------+
-                                         |
-                                         v
-                           +-------------------------------+
-                           |          Agregator           |
-                           |   (Subskrybuje topic MQTT)   |
-                           +-------------------------------+
-                                         |
-                                         v
-                           +-------------------------------+
-                           |        Aggregator API        |
-                           |    (REST API dla danych)     |
-                           +-------------------------------+
-                                         |
-                                         v
-                           +-------------------------------+
-                           |          Baza Danych          |
-                           |      (PostgreSQL/MySQL)       |
-                           +-------------------------------+
-                                         |
-                                         v
-                           +-------------------------------+
-                           |      Interfejs Użytkownika    |
-                           |        (Web Dashboard)        |
-                           +-------------------------------+
-```
-
-### Opis Komponentów
-
-#### 1. **Drony (`drones/`)**
-
-- **Rola:** Symulacja autonomicznych dronów w systemie.
-- **Funkcje:**
-  - **Generowanie Danych:** Każdy dron generuje informacje dotyczące swojej pozycji, stanu baterii oraz innych istotnych parametrów.
-  - **Publikowanie Danych:** Dane są publikowane na brokerze MQTT, umożliwiając ich dalszą dystrybucję.
-  - **Odbiór Komend:** Drony odbierają komendy sterujące z agregatora lub API, co pozwala na ich zdalne kontrolowanie.
-- **MQTT Topic:**
-  ```plaintext
-  drones/{drone_id}/position
-  ```
-- **Szczegółowa Dokumentacja:** [Dokumentacja Dronów](./_docs/drones_component.md)
-- **Pliki:** [Kod drona i konfiguracja](drones/)
-
-#### 2. **Broker MQTT (`server/mqtt/`)**
-
-- **Rola:** Centralny węzeł komunikacyjny systemu.
-- **Funkcje:**
-  - **Odbieranie Danych:** Broker MQTT odbiera dane publikowane przez drony.
-  - **Dystrybucja Danych:** Rozsyła odebrane dane do subskrybujących komponentów, takich jak agregator.
-- **Konfiguracja:**
-  - **Deployment:** Wdrażany w Kubernetes jako usługa z wykorzystaniem Mosquitto, co zapewnia skalowalność i niezawodność.
-- **Pliki:** [Konfiguracja MQTT](server/mqtt/)
-- **Szczegółowe Wyjaśnienie:** [Dokumentacja Brokera MQTT](./_docs/broker_mqtt.md)
-
-#### 3. **Agregator (`aggregator/`)**
-
-- **Rola:** Zbieranie i przetwarzanie danych od dronów.
-- **Funkcje:**
-  - **Subskrypcja Danych:** Subskrybuje odpowiednie topiki MQTT, aby odbierać dane publikowane przez drony.
-  - **Agregacja i Analiza:** Agreguje i analizuje dane w czasie rzeczywistym, umożliwiając natychmiastową reakcję na zmieniające się warunki.
-  - **Przechowywanie i Przekazywanie Danych:** Może zapisywać dane do bazy danych lub przekazywać je dalej do API, w zależności od potrzeb.
-- **MQTT Subskrypcja:**
-  ```plaintext
-  drones/+/position
-  ```
-- **Pliki:** [Kod agregatora](aggregator/)
-- **Szczegółowe Wyjaśnienie:** [Szczegółowy opis agregatora](./_docs/aggregator_details.md)
-
-#### 4. **Aggregator API (`aggregator-api/`)**
-
-- **Rola:** Interfejs REST do dostępu do przetworzonych danych dronów. Umożliwia zewnętrznym systemom i użytkownikom pobieranie informacji o stanie dronów, wysyłanie komend i zarządzanie rojem.
-- **Funkcje:**
-  - **Udostępnianie Danych:** Dostarcza zebrane dane z agregatora za pomocą REST API, umożliwiając dostęp do nich zewnętrznym aplikacjom.
-  - **Zarządzanie Roju Dronów:** Umożliwia zarządzanie dronami, w tym aktualizację ich parametrów oraz wysyłanie komend sterujących.
-  - **Monitorowanie Statusu:** Obsługuje żądania dotyczące statusu dronów, co pozwala na monitorowanie ich bieżącego stanu.
-- **Endpointy API:**
-  ```http
-  GET /api/drones/{drone_id}/status
-  POST /api/drones/{drone_id}/update
-  GET /api/drones
-  ```
-- **Pliki:** [Kod API](aggregator-api/)
-- **Szczegółowe Wyjaśnienie:** [Szczegółowy opis Aggregator API](./_docs/aggregator_api_details.md)
-
-#### 5. **Baza Danych (`database/`)**
-
-- **Rola:** Przechowywanie zebranych danych z dronów.
-- **Funkcje:**
-  - **Przechowywanie Danych:** Gromadzi i przechowuje dane dotyczące pozycji, stanu baterii oraz innych parametrów dronów.
-  - **Zapytania i Analizy:** Umożliwia wykonywanie zapytań oraz analizowanie danych w celu optymalizacji działania roju.
-- **Technologie:** PostgreSQL, MySQL lub inne relacyjne bazy danych.
-- **Pliki:** [Konfiguracja bazy danych](database/)
-- **Szczegółowe Wyjaśnienie:** [Dokumentacja Bazy Danych](./_docs/database.md)
-
-#### 6. **Interfejs Użytkownika (`frontend/`)**
-
-- **Rola:** Dostarczanie wizualizacji i interakcji dla użytkowników systemu.
-- **Funkcje:**
-  - **Web Dashboard:** Wizualizacja danych z roju dronów, monitorowanie ich stanu w czasie rzeczywistym.
-  - **Interakcje:** Umożliwia użytkownikom wysyłanie komend sterujących, zarządzanie dronami oraz analizowanie zgromadzonych danych.
-- **Technologie:** React, Angular, Vue.js lub inne frameworki frontendowe.
-- **Pliki:** [Kod interfejsu użytkownika](frontend/)
-- **Szczegółowe Wyjaśnienie:** [Dokumentacja Frontend](./_docs/frontend.md)
-
 ---
 
 ## 2. Zaawansowany Kurs Docker
@@ -325,7 +192,80 @@ Zarządzanie danymi trwałymi przy użyciu woluminów Dockerowych.
 
 Konfiguracja i zarządzanie sieciami Dockerowymi w celu zapewnienia komunikacji między kontenerami.
 
-- [Szczegółowy opis](./_docs/readme.md#252-sieci)
+##### **Rozbudowany Diagram Sieci z Opisami Procesów Komunikacji**
+
+Poniżej znajduje się szczegółowy diagram architektury sieciowej systemu wraz z opisami procesów komunikacji między komponentami.
+
+```
+                                   +-------------------------------+
+                                   |         Broker MQTT          |
+                                   |         (Mosquitto)          |
+                                   +-------------------------------+
+                                                 ^
+                                                 |
+                   +-----------------------------+-----------------------------+
+                   |                             |                             |
+        +----------v----------+     +----------v----------+     +----------v----------+
+        |       Dron 1        |     |       Dron 2        |     |       Dron N        |
+        | Publikuje dane MQTT |     | Publikuje dane MQTT |     | Publikuje dane MQTT |
+        +---------------------+     +---------------------+     +---------------------+
+                   |                             |                             |
+                   | Publikacja danych            | Publikacja danych            | Publikacja danych
+                   |                             |                             |
+                   +-------------+---------------+---------------+-------------+
+                                 |                               |
+                                 | Subskrypcja danych            | Subskrypcja danych
+                                 |                               |
+                                 v                               v
+                                   +-------------------------------+
+                                   |          Agregator           |
+                                   |   (Subskrybuje topic MQTT)   |
+                                   +-------------------------------+
+                                                 |
+                                                 | Przetwarzanie i analiza danych
+                                                 |
+                                                 v
+                                   +-------------------------------+
+                                   |        Aggregator API        |
+                                   |    (REST API dla danych)     |
+                                   +-------------------------------+
+                                                 |
+                                                 | Dostęp do danych i zarządzanie rojem
+                                                 |
+                                                 v
+                                   +-------------------------------+
+                                   |          Baza Danych          |
+                                   |      (PostgreSQL/MySQL)       |
+                                   +-------------------------------+
+                                                 |
+                                                 | Udostępnianie danych do UI
+                                                 |
+                                                 v
+                                   +-------------------------------+
+                                   |      Interfejs Użytkownika    |
+                                   |        (Web Dashboard)        |
+                                   +-------------------------------+
+```
+
+### Opisy Procesów Komunikacji
+
+1. **Publikacja Danych przez Drony:**
+   - **Drony (Dron 1, Dron 2, ..., Dron N)** generują i publikują dane na dedykowanych topikach MQTT, takich jak `drones/{drone_id}/position`. Dane te obejmują informacje o pozycji, stanie baterii oraz inne istotne parametry.
+
+2. **Subskrypcja Danych przez Agregator:**
+   - **Agregator** subskrybuje wszystkie topiki związane z pozycją dronów (`drones/+/position`) i odbiera publikowane dane. Dzięki temu agregator może zbierać informacje z całego roju dronów w czasie rzeczywistym.
+
+3. **Przetwarzanie i Analiza Danych przez Agregator:**
+   - Po otrzymaniu danych, **Agregator** przetwarza je i analizuje w celu monitorowania stanu dronów, wykrywania potencjalnych problemów oraz optymalizacji działań roju.
+
+4. **Udostępnianie Danych przez Aggregator API:**
+   - **Aggregator API** udostępnia przetworzone dane za pośrednictwem REST API, umożliwiając zewnętrznym aplikacjom oraz interfejsowi użytkownika (UI) dostęp do informacji o stanie dronów oraz zarządzanie nimi.
+
+5. **Przechowywanie Danych w Bazie Danych:**
+   - **Baza Danych** (np. PostgreSQL lub MySQL) przechowuje wszystkie zebrane dane, umożliwiając ich późniejszą analizę, raportowanie oraz historyczne monitorowanie stanu dronów.
+
+6. **Interakcja z Interfejsem Użytkownika:**
+   - **Interfejs Użytkownika (Web Dashboard)** prezentuje wizualizacje danych, umożliwia monitorowanie stanu roju w czasie rzeczywistym oraz interakcję z dronami poprzez wysyłanie komend sterujących.
 
 ### 2.6 Docker w Produkcji i Best Practices
 
@@ -419,42 +359,42 @@ Architektura systemu symulacji roju dronów w środowisku kontenerowym i chmurow
 #### Diagram Architektury
 
 ```
-                           +-------------------------------+
-                           |         Broker MQTT          |
-                           |         (Mosquitto)          |
-                           +-------------------------------+
-                                         ^
-                                         |
-           +-----------------------------+-----------------------------+
-           |                             |                             |
-+----------v----------+     +----------v----------+     +----------v----------+
-|       Dron 1        |     |       Dron 2        |     |       Dron N        |
-| Publikuje dane MQTT |     | Publikuje dane MQTT |     | Publikuje dane MQTT |
-+---------------------+     +---------------------+     +---------------------+
-                                         |
-                                         v
-                           +-------------------------------+
-                           |          Agregator           |
-                           |   (Subskrybuje topic MQTT)   |
-                           +-------------------------------+
-                                         |
-                                         v
-                           +-------------------------------+
-                           |        Aggregator API        |
-                           |    (REST API dla danych)     |
-                           +-------------------------------+
-                                         |
-                                         v
-                           +-------------------------------+
-                           |          Baza Danych          |
-                           |      (PostgreSQL/MySQL)       |
-                           +-------------------------------+
-                                         |
-                                         v
-                           +-------------------------------+
-                           |      Interfejs Użytkownika    |
-                           |        (Web Dashboard)        |
-                           +-------------------------------+
+                               +-------------------------------+
+                               |         Broker MQTT          |
+                               |         (Mosquitto)          |
+                               +-------------------------------+
+                                             ^
+                                             |
+               +-----------------------------+-----------------------------+
+               |                             |                             |
+    +----------v----------+     +----------v----------+     +----------v----------+
+    |       Dron 1        |     |       Dron 2        |     |       Dron N        |
+    | Publikuje dane MQTT |     | Publikuje dane MQTT |     | Publikuje dane MQTT |
+    +---------------------+     +---------------------+     +---------------------+
+                                             |
+                                             v
+                               +-------------------------------+
+                               |          Agregator           |
+                               |   (Subskrybuje topic MQTT)   |
+                               +-------------------------------+
+                                             |
+                                             v
+                               +-------------------------------+
+                               |        Aggregator API        |
+                               |    (REST API dla danych)     |
+                               +-------------------------------+
+                                             |
+                                             v
+                               +-------------------------------+
+                               |          Baza Danych          |
+                               |      (PostgreSQL/MySQL)       |
+                               +-------------------------------+
+                                             |
+                                             v
+                               +-------------------------------+
+                               |      Interfejs Użytkownika    |
+                               |        (Web Dashboard)        |
+                               +-------------------------------+
 ```
 
 ### Opis Komponentów
@@ -860,3 +800,104 @@ Poniżej znajduje się tabela zawierająca odnośniki do istniejących dokument�
 - [Dokumentacja Dronów](./_docs/drones_component.md)
 - [Idea i Koncepcja](./_docs/idea-i-koncepcja.md)
 
+---
+
+**Link do repozytorium:** [https://github.com/DonkeyJJLove/swarm.git](https://github.com/DonkeyJJLove/swarm.git)
+
+---
+
+Jeśli masz dodatkowe pytania lub potrzebujesz dalszej pomocy, śmiało pytaj!
+
+---
+
+## Diagram Architektury Sieci z Opisami Procesów Komunikacji
+
+### Diagram Architektury Sieci
+
+```
+                                   +-------------------------------+
+                                   |         Broker MQTT          |
+                                   |         (Mosquitto)          |
+                                   +-------------------------------+
+                                                 ^
+                                                 |
+                   +-----------------------------+-----------------------------+
+                   |                             |                             |
+        +----------v----------+     +----------v----------+     +----------v----------+
+        |       Dron 1        |     |       Dron 2        |     |       Dron N        |
+        | Publikuje dane MQTT |     | Publikuje dane MQTT |     | Publikuje dane MQTT |
+        +---------------------+     +---------------------+     +---------------------+
+                                                 |
+                                                 v
+                               +-------------------------------+
+                               |          Agregator           |
+                               |   (Subskrybuje topic MQTT)   |
+                               +-------------------------------+
+                                                 |
+                                                 v
+                               +-------------------------------+
+                               |        Aggregator API        |
+                               |    (REST API dla danych)     |
+                               +-------------------------------+
+                                                 |
+                                                 v
+                               +-------------------------------+
+                               |          Baza Danych          |
+                               |      (PostgreSQL/MySQL)       |
+                               +-------------------------------+
+                                                 |
+                                                 v
+                               +-------------------------------+
+                               |      Interfejs Użytkownika    |
+                               |        (Web Dashboard)        |
+                               +-------------------------------+
+```
+
+### Opisy Procesów Komunikacji
+
+1. **Publikacja Danych przez Drony:**
+   - **Drony (Dron 1, Dron 2, ..., Dron N)** generują i publikują dane na dedykowanych topikach MQTT, takich jak `drones/{drone_id}/position`. Dane te obejmują informacje o pozycji, stanie baterii oraz inne istotne parametry.
+
+2. **Subskrypcja Danych przez Agregator:**
+   - **Agregator** subskrybuje wszystkie topiki związane z pozycją dronów (`drones/+/position`) i odbiera publikowane dane. Dzięki temu agregator może zbierać informacje z całego roju dronów w czasie rzeczywistym.
+
+3. **Przetwarzanie i Analiza Danych przez Agregator:**
+   - Po otrzymaniu danych, **Agregator** przetwarza je i analizuje w celu monitorowania stanu dronów, wykrywania potencjalnych problemów oraz optymalizacji działań roju.
+
+4. **Udostępnianie Danych przez Aggregator API:**
+   - **Aggregator API** udostępnia przetworzone dane za pośrednictwem REST API, umożliwiając zewnętrznym aplikacjom oraz interfejsowi użytkownika (UI) dostęp do informacji o stanie dronów oraz zarządzanie nimi.
+
+5. **Przechowywanie Danych w Bazie Danych:**
+   - **Baza Danych** (np. PostgreSQL lub MySQL) przechowuje wszystkie zebrane dane, umożliwiając ich późniejszą analizę, raportowanie oraz historyczne monitorowanie stanu dronów.
+
+6. **Interakcja z Interfejsem Użytkownika:**
+   - **Interfejs Użytkownika (Web Dashboard)** prezentuje wizualizacje danych, umożliwia monitorowanie stanu roju w czasie rzeczywistym oraz interakcję z dronami poprzez wysyłanie komend sterujących.
+
+### UML
+
+**Przykład Diagramu UML z PlantUML:**
+
+```plantuml
+@startuml
+actor User
+
+participant "Web Dashboard" as UI
+participant "Aggregator API" as API
+participant "Agregator" as Agg
+participant "Broker MQTT" as MQTT
+participant "Dron 1" as D1
+participant "Dron 2" as D2
+participant "Baza Danych" as DB
+
+User -> UI: Interakcja (monitorowanie, wysyłanie komend)
+UI -> API: Zapytania REST
+API -> Agg: Pobieranie danych
+Agg -> MQTT: Subskrypcja danych
+D1 -> MQTT: Publikacja danych
+D2 -> MQTT: Publikacja danych
+MQTT -> Agg: Przekazanie danych
+Agg -> DB: Przechowywanie danych
+DB --> API: Dostęp do danych
+API --> UI: Dostarczenie danych
+@enduml
+```
