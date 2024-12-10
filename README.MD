@@ -1,4 +1,4 @@
-# Dokumentacja Zarządzania Ekosystemem MQTT (Broker & Aggregator) w Docker i Kubernetes
+# Ekosystemem MQTT (Broker & Aggregator) w Docker i Kubernetes
 
 ## Spis Treści
 
