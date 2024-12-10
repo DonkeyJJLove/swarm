@@ -1187,7 +1187,6 @@ Poniżej znajduje się tabela zawierająca odnośniki do istniejących dokument�
 
 | **Dokument**                                       | **Link**                                                                                   | **Opis**                                                         |
 |----------------------------------------------------|--------------------------------------------------------------------------------------------|------------------------------------------------------------------|
-| Budowanie i zarządzanie obrazami Dockerowymi       | [budowanie-i-zarządzanie-obrazami-dockerowymi.md](./budowanie-i-zarządzanie-obrazami-dockerowymi.md) | Budowanie i zarządzanie obrazami Docker (multi-stage builds, versioning, repozytoria). |
 | Strategie wdrożeń Blue-Green i Canary             | [strategia_blue_green_canary.md](./strategia_blue_green_canary.md)                        | Strategie wdrożeń Blue-Green i Canary.                          |
 | Ogólny opis projektu                               | [readme.md](./readme.md)                                                                  | Ogólny opis projektu: symulacja roju, komunikacja MQTT, wdrożenie, monitoring, CI/CD. |
 | Dokumentacja Brokera MQTT                          | [broker_mqtt.md](./broker_mqtt.md)                                                        | Szczegółowa Dokumentacja Brokera MQTT.                           |
@@ -1204,7 +1203,6 @@ Poniżej znajduje się tabela zawierająca odnośniki do istniejących dokument�
 - [Kubernetes – Orkiestracja Kontenerów](./readme.md#3-kubernetes---orkiestracja-kontenerow)
 - [Docker w Chmurach Hybrydowych](./readme.md#4-docker-w-chmurach-hybrydowych)
 - [Strategia Blue-Green i Canary](./strategia_blue_green_canary.md)
-- [Budowanie i Zarządzanie Obrazami Dockerowymi](./budowanie-i-zarządzanie-obrazami-dockerowymi.md)
 - [Ogólny Opis Projektu](./readme.md#6-opis-projektu)
 - [Dokumentacja Brokera MQTT](./broker_mqtt.md)
 - [Szczegółowy opis agregatora](./aggregator_details.md)

@@ -1,4 +1,4 @@
-# Ekosystem MQTT (Broker & Aggregator) w Docker i Kubernetes
+# Dokumentacja Zarządzania Ekosystemem MQTT (Broker & Aggregator) w Docker i Kubernetes
 
 ## Spis Treści
 
@@ -37,9 +37,11 @@
     - [Testy Jednostkowe](#testy-jednostkowe)
     - [Testy Integracyjne](#testy-integracyjne)
     - [Testy End-to-End](#testy-end-to-end)
-14. [Licencja](#14-licencja)
-15. [Informacje](#15-informacje)
-16. [Odnośniki](#16-odno%C5%9Bniki)
+14. [Wkład w Projekt](#14-wk%C3%B3d-w-projekt)
+15. [Licencja](#15-licencja)
+16. [Informacje z Istniejących Plików](#16-informacje-z-istniej%C4%85cych-plik%C3%B3w)
+17. [Odnośniki](#17-odno%C5%9Bniki)
+18. [Uwagi](#18-uwagi)
 
 ---
 
@@ -69,11 +71,283 @@ W erze dynamicznie rozwijającego się Internetu Rzeczy (IoT), roje dronów staj
 
 Projekt ma na celu stworzenie skalowalnego i elastycznego systemu do zarządzania rojem dronów, wykorzystując technologię konteneryzacji (Docker) oraz orkiestrację kontenerów (Kubernetes). Dzięki integracji protokołu MQTT, system umożliwia efektywną wymianę danych pomiędzy dronami a centralnymi komponentami, takimi jak agregator danych i interfejsy API.
 
+### **Architektura Projektu**
+
+Architektura projektu została zaprojektowana w celu zapewnienia modularności, skalowalności i niezawodności. Składa się z następujących kluczowych komponentów:
+
+1. **Drony**: Symulowane jako autonomiczne kontenery, generujące i publikujące dane do brokera MQTT.
+2. **Broker MQTT**: Centralny punkt komunikacji, odbierający dane od dronów i dystrybuujący je do subskrybentów.
+3. **Agregator**: Komponent subskrybujący dane z brokera MQTT, przetwarzający je i przygotowujący do dalszej analizy.
+4. **Aggregator API**: REST API umożliwiające dostęp do przetworzonych danych oraz zarządzanie rojem dronów.
+5. **Baza Danych**: Przechowuje zebrane dane, umożliwiając ich analizę i raportowanie.
+6. **Interfejs Użytkownika**: Webowy dashboard umożliwiający monitorowanie stanu roju oraz interakcję z dronami.
+
+### **Korzyści z Implementacji**
+
+#### Zalety Takiego Rozwiązania
+
+- **Skalowalność:**
+  - **Dynamiczne Przydzielanie Zasobów:** W środowisku chmurowym liczba aktywnych dronów może być elastycznie dostosowywana do bieżącego zapotrzebowania. Wzrost obciążenia umożliwia łatwe dodawanie nowych instancji, natomiast spadek – redukcję ich liczby.
+  - **Horizontalne Skalowanie:** Kubernetes ułatwia skalowanie poziome, co pozwala systemowi obsługiwać zmienne obciążenia poprzez rozdzielanie dronów na wiele węzłów.
+
+- **Elastyczność i Modularność:**
+  - **Niezależny Rozwój:** Konteneryzacja umożliwia niezależny rozwój, testowanie i wdrażanie poszczególnych komponentów systemu, co zwiększa modularność i ułatwia integrację nowych funkcjonalności bez wpływu na działające elementy.
+  - **Architektura Mikroserwisów:** Przyjęcie podejścia mikroserwisowego pozwala na rozwój, wdrażanie i skalowanie każdego serwisu niezależnie, co zwiększa ogólną elastyczność systemu.
+
+- **Automatyzacja:**
+  - **Continuous Integration/Continuous Deployment (CI/CD):** Zautomatyzowane pipeline'y CI/CD usprawniają proces budowania, testowania i wdrażania aplikacji, co pozwala na szybkie i niezawodne przenoszenie zmian kodu do środowisk produkcyjnych.
+  - **Infrastructure as Code (IaC):** Narzędzia takie jak Terraform i Helm Charts umożliwiają automatyzację provisioning’u infrastruktury oraz zarządzanie konfiguracją, minimalizując ręczne interwencje i potencjalne błędy.
+
+- **Oszczędność Zasobów:**
+  - **Optymalne Wykorzystanie Chmury:** Efektywne zarządzanie zasobami chmurowymi oraz automatyczne skalowanie pozwala na minimalizację kosztów poprzez płacenie tylko za faktycznie wykorzystywaną infrastrukturę.
+  - **Zarządzanie Kosztami:** Dostawcy chmury oferują różnorodne modele cenowe oraz narzędzia do zarządzania kosztami, które pomagają monitorować i optymalizować wydatki w zależności od wzorców wykorzystania.
+
+#### Wyzwania i Ograniczenia
+
+- **Złożoność Architektury:**
+  - **Wymagania Techniczne:** Zarządzanie dużym rojem kontenerów wymaga dogłębnej wiedzy na temat technologii chmurowych, protokołów komunikacyjnych oraz narzędzi do monitoringu i zabezpieczeń.
+  - **Integracja Systemów:** Zapewnienie płynnej integracji między różnymi komponentami i usługami zwiększa złożoność architektoniczną systemu.
+
+- **Nadmiarowe Koszty i Opóźnienia:**
+  - **Koszty Operacyjne:** Chociaż elastyczność chmury jest korzystna, może prowadzić do wyższych kosztów operacyjnych, jeśli nie jest odpowiednio zarządzana.
+  - **Opóźnienia Sieciowe:** Zwiększony ruch sieciowy oraz czas reakcji brokerów MQTT, baz danych czy systemów monitoringu mogą wprowadzać opóźnienia w komunikacji, co może negatywnie wpływać na operacje w czasie rzeczywistym.
+
+- **Bezpieczeństwo:**
+  - **Ochrona Danych:** Autonomiczne drony komunikujące się w rozproszonym środowisku chmurowym muszą być chronione przed nieautoryzowanym dostępem, atakami i wyciekami danych.
+  - **Zaawansowane Środki Bezpieczeństwa:** Konieczne jest wdrożenie solidnych polityk bezpieczeństwa, mechanizmów uwierzytelniania oraz technik szyfrowania, aby zabezpieczyć system przed potencjalnymi zagrożeniami.
+
+### Architektura Systemu
+
+Architektura systemu symulacji roju dronów w środowisku kontenerowym i chmurowym została zaprojektowana w celu zapewnienia skalowalności, elastyczności oraz niezawodności. System składa się z kilku kluczowych komponentów, które współpracują ze sobą, umożliwiając efektywne zarządzanie dronami, komunikację oraz analizę danych.
+
+#### Diagram Architektury
+
+```
+                           +-------------------------------+
+                           |         Broker MQTT          |
+                           |         (Mosquitto)          |
+                           +-------------------------------+
+                                         ^
+                                         |
+           +-----------------------------+-----------------------------+
+           |                             |                             |
++----------v----------+     +----------v----------+     +----------v----------+
+|       Dron 1        |     |       Dron 2        |     |       Dron N        |
+| Publikuje dane MQTT |     | Publikuje dane MQTT |     | Publikuje dane MQTT |
++---------------------+     +---------------------+     +---------------------+
+                                         |
+                                         v
+                           +-------------------------------+
+                           |          Agregator           |
+                           |   (Subskrybuje topic MQTT)   |
+                           +-------------------------------+
+                                         |
+                                         v
+                           +-------------------------------+
+                           |        Aggregator API        |
+                           |    (REST API dla danych)     |
+                           +-------------------------------+
+                                         |
+                                         v
+                           +-------------------------------+
+                           |          Baza Danych          |
+                           |      (PostgreSQL/MySQL)       |
+                           +-------------------------------+
+                                         |
+                                         v
+                           +-------------------------------+
+                           |      Interfejs Użytkownika    |
+                           |        (Web Dashboard)        |
+                           +-------------------------------+
+```
+
+### Opis Komponentów
+
+#### 1. **Drony (`drones/`)**
+
+- **Rola:** Symulacja autonomicznych dronów w systemie.
+- **Funkcje:**
+  - **Generowanie Danych:** Każdy dron generuje informacje dotyczące swojej pozycji, stanu baterii oraz innych istotnych parametrów.
+  - **Publikowanie Danych:** Dane są publikowane na brokerze MQTT, umożliwiając ich dalszą dystrybucję.
+  - **Odbiór Komend:** Drony odbierają komendy sterujące z agregatora lub API, co pozwala na ich zdalne kontrolowanie.
+- **MQTT Topic:**
+  ```plaintext
+  drones/{drone_id}/position
+  ```
+- **Szczegółowa Dokumentacja:** [Dokumentacja Dronów](./_docs/drones_component.md)
+- **Pliki:** [Kod drona i konfiguracja](drones/)
+
+#### 2. **Broker MQTT (`server/mqtt/`)**
+
+- **Rola:** Centralny węzeł komunikacyjny systemu.
+- **Funkcje:**
+  - **Odbieranie Danych:** Broker MQTT odbiera dane publikowane przez drony.
+  - **Dystrybucja Danych:** Rozsyła odebrane dane do subskrybujących komponentów, takich jak agregator.
+- **Konfiguracja:**
+  - **Deployment:** Wdrażany w Kubernetes jako usługa z wykorzystaniem Mosquitto, co zapewnia skalowalność i niezawodność.
+- **Pliki:** [Konfiguracja MQTT](server/mqtt/)
+- **Szczegółowe Wyjaśnienie:** [Dokumentacja Brokera MQTT](./_docs/broker_mqtt.md)
+
+#### 3. **Agregator (`aggregator/`)**
+
+- **Rola:** Zbieranie i przetwarzanie danych od dronów.
+- **Funkcje:**
+  - **Subskrypcja Danych:** Subskrybuje odpowiednie topiki MQTT, aby odbierać dane publikowane przez drony.
+  - **Agregacja i Analiza:** Agreguje i analizuje dane w czasie rzeczywistym, umożliwiając natychmiastową reakcję na zmieniające się warunki.
+  - **Przechowywanie i Przekazywanie Danych:** Może zapisywać dane do bazy danych lub przekazywać je dalej do API, w zależności od potrzeb.
+- **MQTT Subskrypcja:**
+  ```plaintext
+  drones/+/position
+  ```
+- **Pliki:** [Kod agregatora](aggregator/)
+- **Szczegółowe Wyjaśnienie:** [Szczegółowy opis agregatora](./_docs/aggregator_details.md)
+
+#### 4. **Aggregator API (`aggregator-api/`)**
+
+- **Rola:** Interfejs REST do dostępu do przetworzonych danych dronów. Umożliwia zewnętrznym systemom i użytkownikom pobieranie informacji o stanie dronów, wysyłanie komend i zarządzanie rojem.
+- **Funkcje:**
+  - **Udostępnianie Danych:** Dostarcza zebrane dane z agregatora za pomocą REST API, umożliwiając dostęp do nich zewnętrznym aplikacjom.
+  - **Zarządzanie Roju Dronów:** Umożliwia zarządzanie dronami, w tym aktualizację ich parametrów oraz wysyłanie komend sterujących.
+  - **Monitorowanie Statusu:** Obsługuje żądania dotyczące statusu dronów, co pozwala na monitorowanie ich bieżącego stanu.
+- **Endpointy API:**
+  ```http
+  GET /api/drones/{drone_id}/status
+  POST /api/drones/{drone_id}/update
+  GET /api/drones
+  ```
+- **Pliki:** [Kod API](aggregator-api/)
+- **Szczegółowe Wyjaśnienie:** [Szczegółowy opis Aggregator API](./_docs/aggregator_api_details.md)
+
+#### 5. **Baza Danych (`database/`)**
+
+- **Rola:** Przechowywanie zebranych danych z dronów.
+- **Funkcje:**
+  - **Przechowywanie Danych:** Gromadzi i przechowuje dane dotyczące pozycji, stanu baterii oraz innych parametrów dronów.
+  - **Zapytania i Analizy:** Umożliwia wykonywanie zapytań oraz analizowanie danych w celu optymalizacji działania roju.
+- **Technologie:** PostgreSQL, MySQL lub inne relacyjne bazy danych.
+- **Pliki:** [Konfiguracja bazy danych](database/)
+- **Szczegółowe Wyjaśnienie:** [Dokumentacja Bazy Danych](./_docs/database.md)
+
+#### 6. **Interfejs Użytkownika (`frontend/`)**
+
+- **Rola:** Dostarczanie wizualizacji i interakcji dla użytkowników systemu.
+- **Funkcje:**
+  - **Web Dashboard:** Wizualizacja danych z roju dronów, monitorowanie ich stanu w czasie rzeczywistym.
+  - **Interakcje:** Umożliwia użytkownikom wysyłanie komend sterujących, zarządzanie dronami oraz analizowanie zgromadzonych danych.
+- **Technologie:** React, Angular, Vue.js lub inne frameworki frontendowe.
+- **Pliki:** [Kod interfejsu użytkownika](frontend/)
+- **Szczegółowe Wyjaśnienie:** [Dokumentacja Frontend](./_docs/frontend.md)
+
 ---
 
 ## 2. Zaawansowany Kurs Docker
 
-Aby lepiej zrozumieć zarządzanie kontenerami w projekcie, zalecamy zapoznanie się z [Zaawansowanym Kursem Docker](./_docs/budowanie-i-zarządzanie-obrazami-dockerowymi.md).
+### Budowanie i Zarządzanie Obrazami Dockerowymi
+
+W tej sekcji omówione zostaną zaawansowane techniki budowania oraz zarządzania obrazami Dockerowymi, które są kluczowe dla efektywnego wdrażania i utrzymania aplikacji w środowisku kontenerowym.
+
+#### Multi-Stage Builds
+
+Multi-stage builds pozwalają na tworzenie zoptymalizowanych obrazów Dockerowych, eliminując zbędne warstwy i zmniejszając rozmiar końcowego obrazu. Dzięki temu można oddzielić etapy budowania aplikacji od jej uruchamiania, co poprawia bezpieczeństwo i wydajność.
+
+```dockerfile
+# Etap budowania
+FROM golang:1.16 AS builder
+WORKDIR /app
+COPY . .
+RUN go build -o main .
+
+# Etap uruchamiania
+FROM alpine:latest
+WORKDIR /root/
+COPY --from=builder /app/main .
+CMD ["./main"]
+```
+
+#### Versioning i Repozytoria
+
+Zarządzanie wersjami obrazów Dockerowych jest kluczowe dla utrzymania spójności środowisk oraz kontroli nad wdrażanymi zmianami. Najlepiej jest stosować semantyczne wersjonowanie (semver) oraz przechowywać obrazy w dedykowanych repozytoriach, takich jak Docker Hub, AWS ECR czy Google Container Registry.
+
+```bash
+# Tagowanie obrazu
+docker build -t swarm/drone:1.0.0 .
+
+# Pushowanie do Docker Hub
+docker push swarm/drone:1.0.0
+```
+
+#### Automatyzacja i CI/CD
+
+Integracja z narzędziami CI/CD pozwala na automatyczne budowanie, testowanie i wdrażanie obrazów Dockerowych przy każdej zmianie w kodzie. Przykładowo, używając GitHub Actions, można skonfigurować pipeline, który buduje i pushuje obrazy do repozytorium.
+
+```yaml
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+    - name: Login to Docker Hub
+      uses: docker/login-action@v1
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+    - name: Build and push
+      uses: docker/build-push-action@v2
+      with:
+        push: true
+        tags: swarm/drone:1.0.0
+```
+
+### Zarządzanie Obrazami
+
+#### Multi-Stage Builds
+
+Multi-stage builds to technika umożliwiająca tworzenie zoptymalizowanych obrazów Dockerowych poprzez oddzielenie etapów budowania od etapu uruchamiania. Pozwala to na eliminację niepotrzebnych plików i zależności w końcowym obrazie, co zmniejsza jego rozmiar i zwiększa bezpieczeństwo.
+
+```dockerfile
+# Etap budowania
+FROM node:14 AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+
+# Etap uruchamiania
+FROM nginx:alpine
+COPY --from=builder /app/build /usr/share/nginx/html
+```
+
+#### Versioning i Repozytoria
+
+Stosowanie semantycznego wersjonowania (semver) pozwala na łatwe zarządzanie wersjami obrazów Dockerowych. Przechowywanie obrazów w dedykowanych repozytoriach zapewnia centralne miejsce do ich dystrybucji i zarządzania.
+
+```bash
+# Tagowanie obrazu
+docker build -t swarm/drone:1.0.0 .
+
+# Pushowanie do Docker Hub
+docker push swarm/drone:1.0.0
+```
+
+#### Zarządzanie Repozytoriami
+
+Używanie dedykowanych repozytoriów, takich jak Docker Hub, AWS ECR czy Google Container Registry, umożliwia centralne zarządzanie obrazami Dockerowymi, kontrolę dostępu oraz integrację z narzędziami CI/CD.
+
+```bash
+# Pushowanie do AWS ECR
+aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 123456789012.dkr.ecr.us-west-2.amazonaws.com
+docker tag swarm/drone:1.0.0 123456789012.dkr.ecr.us-west-2.amazonaws.com/drone:1.0.0
+docker push 123456789012.dkr.ecr.us-west-2.amazonaws.com/drone:1.0.0
+```
 
 ---
 
@@ -251,26 +525,6 @@ Architektura systemu symulacji roju dronów w środowisku kontenerowym i chmurow
   ```
 - **Pliki:** [Kod API](aggregator-api/)
 - **Szczegółowe Wyjaśnienie:** [Szczegółowy opis Aggregator API](./_docs/aggregator_api_details.md)
-
-#### 5. **Baza Danych (`database/`)**
-
-- **Rola:** Przechowywanie zebranych danych z dronów.
-- **Funkcje:**
-  - **Przechowywanie Danych:** Gromadzi i przechowuje dane dotyczące pozycji, stanu baterii oraz innych parametrów dronów.
-  - **Zapytania i Analizy:** Umożliwia wykonywanie zapytań oraz analizowanie danych w celu optymalizacji działania roju.
-- **Technologie:** PostgreSQL, MySQL lub inne relacyjne bazy danych.
-- **Pliki:** [Konfiguracja bazy danych](database/)
-- **Szczegółowe Wyjaśnienie:** [Dokumentacja Bazy Danych](./_docs/database.md)
-
-#### 6. **Interfejs Użytkownika (`frontend/`)**
-
-- **Rola:** Dostarczanie wizualizacji i interakcji dla użytkowników systemu.
-- **Funkcje:**
-  - **Web Dashboard:** Wizualizacja danych z roju dronów, monitorowanie ich stanu w czasie rzeczywistym.
-  - **Interakcje:** Umożliwia użytkownikom wysyłanie komend sterujących, zarządzanie dronami oraz analizowanie zgromadzonych danych.
-- **Technologie:** React, Angular, Vue.js lub inne frameworki frontendowe.
-- **Pliki:** [Kod interfejsu użytkownika](frontend/)
-- **Szczegółowe Wyjaśnienie:** [Dokumentacja Frontend](./_docs/frontend.md)
 
 ---
 
@@ -559,13 +813,41 @@ Testy end-to-end symulują pełny przepływ danych w systemie, od drona do inter
 
 ---
 
-## 14. Licencja
+## 14. Wkład w Projekt
+
+Twój wkład w projekt jest bardzo mile widziany! Aby zacząć, wykonaj następujące kroki:
+
+1. **Fork Repozytorium:** Kliknij przycisk "Fork" na stronie repozytorium [swarm](https://github.com/DonkeyJJLove/swarm.git).
+2. **Stwórz Nową Gałąź:** Utwórz nową gałąź dla swoich zmian:
+   ```bash
+   git checkout -b feature/nazwa-funkcjonalnosci
+   ```
+3. **Wprowadź Zmiany:** Wprowadź swoje zmiany i dokonaj commitów:
+   ```bash
+   git commit -m "Opis wprowadzonych zmian"
+   ```
+4. **Wypchnij Zmiany:** Wypchnij swoje zmiany do swojego forka:
+   ```bash
+   git push origin feature/nazwa-funkcjonalnosci
+   ```
+5. **Utwórz Pull Request:** Przejdź do oryginalnego repozytorium [swarm](https://github.com/DonkeyJJLove/swarm.git) i utwórz Pull Request, opisując wprowadzone zmiany.
+
+### Zasady Wkładu
+
+- **Kultura Wkładu:** Zachowuj się uprzejmie i z szacunkiem wobec innych członków społeczności.
+- **Styl Kodowania:** Staraj się przestrzegać istniejących standardów kodowania używanych w projekcie.
+- **Testy:** Upewnij się, że wszystkie nowe funkcje są pokryte testami jednostkowymi i integracyjnymi.
+- **Dokumentacja:** Aktualizuj dokumentację, jeśli wprowadzasz zmiany wpływające na użytkowników lub deweloperów.
+
+---
+
+## 15. Licencja
 
 Projekt jest licencjonowany na podstawie licencji MIT. Możesz znaleźć szczegółowe informacje w pliku [LICENSE](./LICENSE).
 
 ---
 
-## 15. Informacje
+## 16. Informacje z Istniejących Plików
 
 Poniżej znajduje się tabela zawierająca odnośniki do istniejących dokumentów w katalogu `_docs/` oraz ich opisy:
 
@@ -584,7 +866,7 @@ Poniżej znajduje się tabela zawierająca odnośniki do istniejących dokument�
 
 ---
 
-## 16. Odnośniki
+## 17. Odnośniki
 
 - [Wprowadzenie do Docker i Kubernetes - Chmury Hybrydowe](./_docs/readme.md)
 - [Kubernetes – Orkiestracja Kontenerów](#3-kubernetes---orkiestracja-kontenerow)
@@ -600,3 +882,4 @@ Poniżej znajduje się tabela zawierająca odnośniki do istniejących dokument�
 - [Dokumentacja Dronów](./_docs/drones_component.md)
 - [Idea i Koncepcja](./_docs/idea-i-koncepcja.md)
 
+---
