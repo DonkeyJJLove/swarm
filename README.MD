@@ -38,7 +38,7 @@
     - [Testy Integracyjne](#testy-integracyjne)
     - [Testy End-to-End](#testy-end-to-end)
 14. [Licencja](#14-licencja)
-15. [Informacje z Istniejących Plików](#15-informacje-z-istniej%C4%85cych-plik%C3%B3w)
+15. [Informacje](#15-informacje)
 16. [Odnośniki](#16-odno%C5%9Bniki)
 
 ---
@@ -565,7 +565,7 @@ Projekt jest licencjonowany na podstawie licencji MIT. Możesz znaleźć szczeg�
 
 ---
 
-## 15. Informacje z Istniejących Plików
+## 15. Informacje
 
 Poniżej znajduje się tabela zawierająca odnośniki do istniejących dokumentów w katalogu `_docs/` oraz ich opisy:
 
