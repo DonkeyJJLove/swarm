@@ -4,7 +4,7 @@
 
 1. [Zaawansowany Kurs Docker](#zaawansowany-kurs-docker)
     - [1. Podstawowe Komendy Docker (Szybkie Przypomnienie)](#1-podstawowe-komendy-docker-szybkie-przypomnienie)
-    - [2. Zaawansowane Zarządzanie Kontenerami](#2-zaawansowane-zarządzanie-kontenerami)
+    - [2. Zarządzanie Kontenerami](#2-zarządzanie-kontenerami)
     - [3. Budowanie i Optymalizacja Obrazów](#3-budowanie-i-optymalizacja-obrazów)
     - [4. Docker Compose](#4-docker-compose)
     - [5. Woluminy i Sieci](#5-woluminy-i-sieci)
@@ -25,7 +25,7 @@
     - [3. Przykłady Zastosowań](#3-przykłady-zastosowań)
     - [4. Integracja Docker z Platformami Chmurowymi](#4-integracja-docker-z-platformami-chmurowymi)
     - [Podsumowanie Docker w Chmurach Hybrydowych](#podsumowanie-docker-w-chmurach-hybrydowych)
-4. [Zaawansowane Zarządzanie Rojem Dronów w Kubernetes](#zaawansowane-zarządzanie-rojem-dronów-w-kubernetes)
+4. [Zarządzanie Rojem Dronów w Kubernetes](#zarządzanie-rojem-dronów-w-kubernetes)
     - [1. Wprowadzenie](#1-wprowadzenie)
     - [2. Konfiguracja Headless Service dla Rojów Dronów](#2-konfiguracja-headless-service-dla-rojów-dronów)
         - [Definicja Headless Service](#definicja-headless-service)
@@ -87,7 +87,7 @@ Zacznijmy od przypomnienia najważniejszych komend Docker, które są fundamente
 
 ---
 
-### 2. Zaawansowane Zarządzanie Kontenerami
+### 2. Zarządzanie Kontenerami
 
 Przechodzimy do bardziej zaawansowanych technik zarządzania kontenerami Docker.
 
@@ -267,7 +267,7 @@ Przygotowanie kontenerów Docker do środowiska produkcyjnego wymaga przestrzega
 Ten zaawansowany kurs Dockera obejmował kluczowe zagadnienia niezbędne do efektywnego zarządzania kontenerami w środowisku produkcyjnym:
 
 1. **Podstawowe komendy Docker**
-2. **Zaawansowane zarządzanie kontenerami**
+2. **Zarządzanie kontenerami**
 3. **Budowanie i optymalizacja obrazów**
 4. **Docker Compose**
 5. **Woluminy i sieci**
@@ -469,7 +469,7 @@ Docker odgrywa kluczową rolę w implementacji rozwiązań chmur hybrydowych, of
 
 ---
 
-## Zaawansowane Zarządzanie Rojem Dronów w Kubernetes
+## Zarządzanie Rojem Dronów w Kubernetes
 
 ### 1. Wprowadzenie
 
