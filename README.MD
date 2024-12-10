@@ -37,11 +37,9 @@
     - [Testy Jednostkowe](#testy-jednostkowe)
     - [Testy Integracyjne](#testy-integracyjne)
     - [Testy End-to-End](#testy-end-to-end)
-14. [Wkład w Projekt](#14-wk%C3%B3d-w-projekt)
-15. [Licencja](#15-licencja)
-16. [Informacje z Istniejących Plików](#16-informacje-z-istniej%C4%85cych-plik%C3%B3w)
-17. [Odnośniki](#17-odno%C5%9Bniki)
-18. [Uwagi](#18-uwagi)
+14. [Licencja](#14-licencja)
+15. [Informacje z Istniejących Plików](#15-informacje-z-istniej%C4%85cych-plik%C3%B3w)
+16. [Odnośniki](#16-odno%C5%9Bniki)
 
 ---
 
@@ -561,41 +559,13 @@ Testy end-to-end symulują pełny przepływ danych w systemie, od drona do inter
 
 ---
 
-## 14. Wkład w Projekt
-
-Twój wkład w projekt jest bardzo mile widziany! Aby zacząć, wykonaj następujące kroki:
-
-1. **Fork Repozytorium:** Kliknij przycisk "Fork" na stronie repozytorium [swarm](https://github.com/DonkeyJJLove/swarm.git).
-2. **Stwórz Nową Gałąź:** Utwórz nową gałąź dla swoich zmian:
-   ```bash
-   git checkout -b feature/nazwa-funkcjonalnosci
-   ```
-3. **Wprowadź Zmiany:** Wprowadź swoje zmiany i dokonaj commitów:
-   ```bash
-   git commit -m "Opis wprowadzonych zmian"
-   ```
-4. **Wypchnij Zmiany:** Wypchnij swoje zmiany do swojego forka:
-   ```bash
-   git push origin feature/nazwa-funkcjonalnosci
-   ```
-5. **Utwórz Pull Request:** Przejdź do oryginalnego repozytorium [swarm](https://github.com/DonkeyJJLove/swarm.git) i utwórz Pull Request, opisując wprowadzone zmiany.
-
-### Zasady Wkładu
-
-- **Kultura Wkładu:** Zachowuj się uprzejmie i z szacunkiem wobec innych członków społeczności.
-- **Styl Kodowania:** Staraj się przestrzegać istniejących standardów kodowania używanych w projekcie.
-- **Testy:** Upewnij się, że wszystkie nowe funkcje są pokryte testami jednostkowymi i integracyjnymi.
-- **Dokumentacja:** Aktualizuj dokumentację, jeśli wprowadzasz zmiany wpływające na użytkowników lub deweloperów.
-
----
-
-## 15. Licencja
+## 14. Licencja
 
 Projekt jest licencjonowany na podstawie licencji MIT. Możesz znaleźć szczegółowe informacje w pliku [LICENSE](./LICENSE).
 
 ---
 
-## 16. Informacje z Istniejących Plików
+## 15. Informacje z Istniejących Plików
 
 Poniżej znajduje się tabela zawierająca odnośniki do istniejących dokumentów w katalogu `_docs/` oraz ich opisy:
 
@@ -614,7 +584,7 @@ Poniżej znajduje się tabela zawierająca odnośniki do istniejących dokument�
 
 ---
 
-## 17. Odnośniki
+## 16. Odnośniki
 
 - [Wprowadzenie do Docker i Kubernetes - Chmury Hybrydowe](./_docs/readme.md)
 - [Kubernetes – Orkiestracja Kontenerów](#3-kubernetes---orkiestracja-kontenerow)
