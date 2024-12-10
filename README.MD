@@ -1,4 +1,4 @@
-# Ekosystemem MQTT (Broker & Aggregator) w Docker i Kubernetes
+# Ekosystem MQTT (Broker & Aggregator) w Docker i Kubernetes
 
 ## Spis Treści
 
