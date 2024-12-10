@@ -10,7 +10,7 @@
     - [5. Woluminy i Sieci](#5-woluminy-i-sieci)
     - [6. Docker w Produkcji i Best Practices](#6-docker-w-produkcji-i-best-practices)
     - [Podsumowanie](#podsumowanie)
-2. [Kubernetes – Orkiestracja Kontenerów](#kubernetes---orkiestracja-kontenerow)
+2. [Kubernetes – Orkiestracja Kontenerów](#kubernetes---orkiestracja-kontenerów)
     - [1. Wprowadzenie do Kubernetes](#1-wprowadzenie-do-kubernetes)
     - [2. Podstawowe Komponenty Kubernetes](#2-podstawowe-komponenty-kubernetes)
     - [3. Deployment i Service](#3-deployment-i-service)
@@ -22,12 +22,12 @@
 3. [Docker w Chmurach Hybrydowych](#docker-w-chmurach-hybrydowych)
     - [1. Co to jest Chmura Hybrydowa?](#1-co-to-jest-chmura-hybrydowa)
     - [2. Zalety Docker w Chmurach Hybrydowych](#2-zalety-docker-w-chmurach-hybrydowych)
-    - [3. Przykłady Zastosowań](#3-przyklady-zastosowan)
+    - [3. Przykłady Zastosowań](#3-przyklady-zastosowań)
     - [4. Integracja Docker z Platformami Chmurowymi](#4-integracja-docker-z-platformami-chmurowymi)
     - [Podsumowanie Docker w Chmurach Hybrydowych](#podsumowanie-docker-w-chmurach-hybrydowych)
 4. [Zaawansowane Zarządzanie Rojem Dronów w Kubernetes](#zaawansowane-zarzadzanie-rojem-dronow-w-kubernetes)
     - [1. Wprowadzenie](#1-wprowadzenie)
-    - [2. Konfiguracja Headless Service dla Rojów Dronów](#2-konfiguracja-headless-service-dla-rojow-dronow)
+    - [2. Konfiguracja Headless Service dla Rojów Dronów](#2-konfiguracja-headless-service-dla-rojóow-dronów)
         - [Definicja Headless Service](#definicja-headless-service)
         - [Ograniczenia Headless Service w Komunikacji UDP](#ograniczenia-headless-service-w-komunikacji-udp)
     - [3. Implementacja Centralnego Agregatora Danych](#3-implementacja-centralnego-agregatora-danych)
@@ -35,17 +35,17 @@
         - [Dockerfile dla Agregatora](#dockerfile-dla-agregatora)
         - [Deployment i Service dla Agregatora](#deployment-i-service-dla-agregatora)
         - [Modyfikacja Logiki Drona](#modyfikacja-logiki-drona)
-        - [Aktualizacja Deployment dla Dronów](#aktualizacja-deployment-dla-dronow)
-        - [Wdrożenie Konfiguracji w Kubernetes](#wdrozenie-konfiguracji-w-kubernetes)
-        - [Weryfikacja Działania Agregatora](#weryfikacja-dzialania-agregatora)
+        - [Aktualizacja Deployment dla Dronów](#aktualizacja-deployment-dla-dronów)
+        - [Wdrożenie Konfiguracji w Kubernetes](#wdrożenie-konfiguracji-w-kubernetes)
+        - [Weryfikacja Działania Agregatora](#weryfikacja-działania-agregatora)
     - [4. Usuwanie Usługi Mosquitto](#4-usuwanie-uslugi-mosquitto)
-        - [Sprawdzenie Istniejących Zasobów Mosquitto](#sprawdzenie-istniejacych-zasobow-mosquitto)
-        - [Usunięcie Deployment i Service dla Mosquitto](#usuniecie-deployment-i-service-dla-mosquitto)
-        - [Weryfikacja Usunięcia Zasobów](#weryfikacja-usuniecia-zasobow)
+        - [Sprawdzenie Istniejących Zasobów Mosquitto](#sprawdzenie-istniejących-zasobów-mosquitto)
+        - [Usunięcie Deployment i Service dla Mosquitto](#usunięcie-deployment-i-service-dla-mosquitto)
+        - [Weryfikacja Usunięcia Zasobów](#weryfikacja-usunięcia-zasobów)
     - [5. Alternatywne Podejścia do Agregacji Danych](#5-alternatywne-podejscia-do-agregacji-danych)
         - [Użycie Message Broker (MQTT)](#uzycie-message-broker-mqtt)
         - [Użycie HTTP REST API](#uzycie-http-rest-api)
-    - [6. Rozwiązywanie Problemów w PowerShell](#6-rozwiazywanie-problemow-w-powershell)
+    - [6. Rozwiązywanie Problemów w PowerShell](#6-rozwiazywanie-problemów-w-powershell)
         - [Zastąpienie `grep` w PowerShell](#zastapienie-grep-w-powershell)
     - [7. Podsumowanie](#7-podsumowanie)
 5. [Opis Projektu](#opis-projektu)
@@ -684,7 +684,7 @@ spec:
 
 #### Wdrożenie Konfiguracji w Kubernetes
 
-Upewnij się, że obrazy Docker dla dronów i agregatora są zbudowane i przesłane do rejestru Docker (`localhost:5000` w tym przypadku).
+Upewnij się, że obrazy Docker dla dronów i agregatora są zbudowane i przesłane do rejestru Docker (`localhost:5000` w tym przypadku - [Zarządzanie Obrazami i Rejestrem Docker](budowanie-i-zarządzanie-obrazami-dockerowymi.md#uruchomienie-lokalnego-rejestru-docker).
 
 ```bash
 # Budowanie obrazu drona
