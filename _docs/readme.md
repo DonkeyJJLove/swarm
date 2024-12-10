@@ -1,65 +1,90 @@
-# Wprowadzenie do Docker i Kubernetes - Chmury Hybrydowe
+# Dokumentacja Zarządzania Ekosystemem MQTT (Broker & Aggregator) w Docker i Kubernetes
 
 ## Spis Treści
 
-1. [Zaawansowany Kurs Docker](#zaawansowany-kurs-docker)
-    - [1. Podstawowe Komendy Docker (Szybkie Przypomnienie)](#1-podstawowe-komendy-docker-szybkie-przypomnienie)
-    - [2. Zarządzanie Kontenerami](#2-zarządzanie-kontenerami)
-    - [3. Budowanie i Optymalizacja Obrazów](#3-budowanie-i-optymalizacja-obrazów)
-    - [4. Docker Compose](#4-docker-compose)
-    - [5. Woluminy i Sieci](#5-woluminy-i-sieci)
-    - [6. Docker w Produkcji i Best Practices](#6-docker-w-produkcji-i-best-practices)
-    - [Podsumowanie](#podsumowanie)
-2. [Kubernetes – Orkiestracja Kontenerów](#kubernetes--orkiestracja-kontenerów)
-    - [1. Wprowadzenie do Kubernetes](#1-wprowadzenie-do-kubernetes)
-    - [2. Podstawowe Komponenty Kubernetes](#2-podstawowe-komponenty-kubernetes)
-    - [3. Deployment i Service](#3-deployment-i-service)
-    - [4. Skalowanie Aplikacji](#4-skalowanie-aplikacji)
-    - [5. Monitoring i Logowanie](#5-monitoring-i-logowanie)
-    - [6. Best Practices w Kubernetes](#6-best-practices-w-kubernetes)
-    - [Podsumowanie Kubernetes](#podsumowanie-kubernetes)
-    - [Zarządzanie Deploymentami w Kubernetes](#zarządzanie-deploymentami-w-kubernetes)
-3. [Docker w Chmurach Hybrydowych](#docker-w-chmurach-hybrydowych)
-    - [1. Co to jest Chmura Hybrydowa?](#1-co-to-jest-chmura-hybrydowa)
-    - [2. Zalety Docker w Chmurach Hybrydowych](#2-zalety-docker-w-chmurach-hybrydowych)
-    - [3. Przykłady Zastosowań](#3-przykłady-zastosowań)
-    - [4. Integracja Docker z Platformami Chmurowymi](#4-integracja-docker-z-platformami-chmurowymi)
-    - [Podsumowanie Docker w Chmurach Hybrydowych](#podsumowanie-docker-w-chmurach-hybrydowych)
-4. [Zarządzanie Rojem Dronów w Kubernetes](#zarządzanie-rojem-dronów-w-kubernetes)
-    - [1. Wprowadzenie](#1-wprowadzenie)
-    - [2. Konfiguracja Headless Service dla Rojów Dronów](#2-konfiguracja-headless-service-dla-rojów-dronów)
-        - [Definicja Headless Service](#definicja-headless-service)
-        - [Ograniczenia Headless Service w Komunikacji UDP](#ograniczenia-headless-service-w-komunikacji-udp)
-    - [3. Implementacja Centralnego Agregatora Danych](#3-implementacja-centralnego-agregatora-danych)
-        - [Tworzenie Skryptu Agregatora](#tworzenie-skryptu-agregatora)
-        - [Dockerfile dla Agregatora](#dockerfile-dla-agregatora)
-        - [Deployment i Service dla Agregatora](#deployment-i-service-dla-agregatora)
-        - [Modyfikacja Logiki Drona](#modyfikacja-logiki-drona)
-        - [Aktualizacja Deployment dla Dronów](#aktualizacja-deployment-dla-dronów)
-        - [Wdrożenie Konfiguracji w Kubernetes](#wdrożenie-konfiguracji-w-kubernetes)
-        - [Weryfikacja Działania Agregatora](#weryfikacja-działania-agregatora)
-    - [4. Usuwanie Usługi Mosquitto](#4-usuwanie-usługi-mosquitto)
-        - [Sprawdzenie Istniejących Zasobów Mosquitto](#sprawdzenie-istniejących-zasobów-mosquitto)
-        - [Usunięcie Deployment i Service dla Mosquitto](#usunięcie-deployment-i-service-dla-mosquitto)
-        - [Weryfikacja Usunięcia Zasobów](#weryfikacja-usunięcia-zasobów)
-    - [5. Alternatywne Podejścia do Agregacji Danych](#5-alternatywne-podejścia-do-agregacji-danych)
-        - [Użycie Message Broker (MQTT)](#uzycie-message-broker-mqtt)
-        - [Użycie HTTP REST API](#uzycie-http-rest-api)
-    - [6. Rozwiązywanie Problemów w PowerShell](#6-rozwiązywanie-problemów-w-powershell)
-        - [Zastąpienie `grep` w PowerShell](#zastąpienie-grep-w-powershell)
-    - [7. Podsumowanie](#7-podsumowanie)
-5. [Opis Projektu](#opis-projektu)
-    - [Idea i Koncepcja](#idea-i-koncepcja)
-    - [Poziomy Architektoniczne i Komponenty](#poziomy-architektoniczne-i-komponenty)
-    - [Integracja i Przepływ](#integracja-i-przeplyw)
-    - [Rola dla Modeli AI](#rola-dla-modeli-ai)
-6. [Podsumowanie](#podsumowanie)
+1. [Wprowadzenie](#1-wprowadzenie)
+2. [Zaawansowany Kurs Docker](#2-zaawansowany-kurs-docker)
+    - [2.1 Podstawowe Komendy Docker (Szybkie Przypomnienie)](#21-podstawowe-komendy-docker-szybkie-przypomnienie)
+    - [2.2 Zarządzanie Kontenerami](#22-zarz%C4%85dzanie-kontenerami)
+    - [2.3 Budowanie i Optymalizacja Obrazów](#23-budowanie-i-optymalizacja-obra%C5%BC%C3%B3w)
+        - [2.3.1 Przykładowy `Dockerfile`](#231-przyk%C5%82adowy-dockerfile)
+        - [2.3.2 Budowanie Obrazu](#232-budowanie-obrazu)
+        - [2.3.3 Optymalizacja Obrazów](#233-optymalizacja-obra%C5%BC%C3%B3w)
+    - [2.4 Docker Compose](#24-docker-compose)
+        - [2.4.1 `docker-compose.yml` – Przykład](#241-docker-composeyml-przyk%C5%82ad)
+        - [2.4.2 Uruchamianie Docker Compose](#242-uruchamianie-docker-compose)
+    - [2.5 Woluminy i Sieci](#25-woluminy-i-sieci)
+        - [2.5.1 Woluminy](#251-woluminy)
+        - [2.5.2 Sieci](#252-sieci)
+    - [2.6 Docker w Produkcji i Best Practices](#26-docker-w-produkcji-i-best-practices)
+    - [Podsumowanie](#2-podsumowanie)
+3. [Kubernetes – Orkiestracja Kontenerów](#3-kubernetes---orkiestracja-kontenerow)
+    - [3.1 Wprowadzenie do Kubernetes](#31-wprowadzenie-do-kubernetes)
+    - [3.2 Podstawowe Komponenty Kubernetes](#32-podstawowe-komponenty-kubernetes)
+    - [3.3 Deployment i Service](#33-deployment-i-service)
+        - [3.3.1 Przykład Deployment](#331-przyk%C5%82ad-deployment)
+        - [3.3.2 Przykład Service](#332-przyk%C5%82ad-service)
+    - [3.4 Skalowanie Aplikacji](#34-skalowanie-aplikacji)
+        - [3.4.1 Skalowanie ręczne](#341-skalowanie-r%C4%99czne)
+        - [3.4.2 Autoskalowanie (Horizontal Pod Autoscaler)](#342-autoskalowanie-horizontal-pod-autoscaler)
+    - [3.5 Monitoring i Logowanie](#35-monitorowanie-i-logowanie)
+    - [3.6 Best Practices w Kubernetes](#36-best-practices-w-kubernetes)
+    - [Podsumowanie Kubernetes](#3-podsumowanie-kubernetes)
+    - [3.7 Zarządzanie Deploymentami w Kubernetes](#37-zarz%C4%85dzanie-deploymentami-w-kubernetes)
+4. [Docker w Chmurach Hybrydowych](#4-docker-w-chmurach-hybrydowych)
+    - [4.1 Co to jest Chmura Hybrydowa?](#41-co-to-jest-chmura-hybrydowa)
+    - [4.2 Zalety Docker w Chmurach Hybrydowych](#42-zalety-docker-w-chmurach-hybrydowych)
+    - [4.3 Przykłady Zastosowań](#43-przyk%C5%82ady-zastosowa%C5%84)
+    - [4.4 Integracja Docker z Platformami Chmurowymi](#44-integracja-docker-z-platformami-chmurowymi)
+    - [Podsumowanie Docker w Chmurach Hybrydowych](#4-podsumowanie-docker-w-chmurach-hybrydowych)
+5. [Zarządzanie Rojem Dronów w Kubernetes](#5-zarz%C4%85dzanie-rojem-dron%C3%B3w-w-kubernetes)
+    - [5.1 Wprowadzenie](#51-wprowadzenie)
+    - [5.2 Konfiguracja Headless Service dla Rojów Dronów](#52-konfiguracja-headless-service-dla-roj%C3%B3w-dron%C3%B3w)
+        - [5.2.1 Definicja Headless Service](#521-definicja-headless-service)
+        - [5.2.2 Ograniczenia Headless Service w Komunikacji UDP](#522-ograniczenia-headless-service-w-komunikacji-udp)
+    - [5.3 Implementacja Centralnego Agregatora Danych](#53-implementacja-centralnego-agregatora-danych)
+        - [5.3.1 Tworzenie Skryptu Agregatora](#531-tworzenie-skryptu-agregatora)
+        - [5.3.2 Dockerfile dla Agregatora](#532-dockerfile-dla-agregatora)
+        - [5.3.3 Deployment i Service dla Agregatora](#533-deployment-i-service-dla-agregatora)
+        - [5.3.4 Modyfikacja Logiki Drona](#534-modyfikacja-logiki-drona)
+        - [5.3.5 Aktualizacja Deployment dla Dronów](#535-aktualizacja-deployment-dla-dron%C3%B3w)
+        - [5.3.6 Wdrożenie Konfiguracji w Kubernetes](#536-wdro%C5%BCenie-konfiguracji-w-kubernetes)
+        - [5.3.7 Weryfikacja Działania Agregatora](#537-weryfikacja-dzia%C5%82ania-agregatora)
+    - [5.4 Usuwanie Usługi Mosquitto](#54-usuwanie-us%C5%82ugi-mosquitto)
+        - [5.4.1 Sprawdzenie Istniejących Zasobów Mosquitto](#541-sprawdzenie-istniej%C4%85cych-zasob%C3%B3w-mosquitto)
+        - [5.4.2 Usunięcie Deployment i Service dla Mosquitto](#542-usuni%C4%99cie-deployment-i-service-dla-mosquitto)
+        - [5.4.3 Weryfikacja Usunięcia Zasobów](#543-weryfikacja-usuni%C4%99cia-zasob%C3%B3w)
+    - [5.5 Alternatywne Podejścia do Agregacji Danych](#55-alternatywne-podej%C4%85cia-do-agregacji-danych)
+        - [5.5.1 Użycie Message Broker (MQTT)](#551-u%C5%BCycie-message-broker-mqtt)
+        - [5.5.2 Użycie HTTP REST API](#552-u%C5%BCycie-http-rest-api)
+    - [5.6 Rozwiązywanie Problemów w PowerShell](#56-rozwiazywanie-problem%C3%B3w-w-powershell)
+        - [5.6.1 Zastąpienie `grep` w PowerShell](#561-zast%C4%85pienie-grep-w-powershell)
+    - [5.7 Podsumowanie](#57-podsumowanie)
+6. [Opis Projektu](#6-opis-projektu)
+    - [6.1 Idea i Koncepcja](#61-idea-i-koncepcja)
+    - [6.2 Poziomy Architektoniczne i Komponenty](#62-poziomy-architektoniczne-i-komponenty)
+        - [Poziom 1: Fundamenty Komunikacji i Orkiestracji](#poziom-1-fundamenty-komunikacji-i-orkiestracji)
+        - [Poziom 2: Drony i Generowanie Danych](#poziom-2-drony-i-generowanie-danych)
+        - [Poziom 3: Agregacja Danych i API](#poziom-3-agregacja-danych-i-api)
+        - [Poziom 4: Narzędzia Wspomagające, Monitoring, CI/CD](#poziom-4-narz%C4%99dzia-wspomagaj%C4%85ce-monitoring-cicd)
+        - [Poziom 5: Bezpieczeństwo i Izolacja](#poziom-5-bezpiecze%C5%84stwo-i-izolacja)
+    - [6.3 Integracja i Przepływ](#63-integracja-i-przep%C5%82yw)
+    - [6.4 Rola dla Modeli AI](#64-rola-dla-modeli-ai)
+7. [Podsumowanie](#7-podsumowanie)
+8. [Informacje z Istniejących Plików](#8-informacje-z-istniej%C4%85cych-plik%C3%B3w)
+9. [Odnośniki](#9-odno%C5%9Bniki)
 
 ---
 
-## Zaawansowany Kurs Docker
+## 1. Wprowadzenie
 
-### 1. Podstawowe Komendy Docker (Szybkie Przypomnienie)
+Zarządzanie rojem dronów w środowisku chmurowym to złożony, wielowymiarowy proces, który integruje zaawansowane techniki konteneryzacji, orkiestracji, komunikacji oraz inteligentnego sterowania. Głównym celem jest traktowanie każdego drona jako niezależnego kontenera, co umożliwia jego autonomiczne działanie oraz płynną komunikację z innymi dronami i komponentami systemu. Wykorzystanie podejścia chmurowego pozwala na dynamiczne skalowanie liczby dronów w zależności od aktualnych potrzeb, automatyzację procesów wdrażania i aktualizacji oraz zastosowanie zaawansowanych narzędzi do monitoringu i analizy danych.
+
+---
+
+## 2. Zaawansowany Kurs Docker
+
+### 2.1 Podstawowe Komendy Docker (Szybkie Przypomnienie)
 
 Zacznijmy od przypomnienia najważniejszych komend Docker, które są fundamentem pracy z kontenerami.
 
@@ -87,7 +112,7 @@ Zacznijmy od przypomnienia najważniejszych komend Docker, które są fundamente
 
 ---
 
-### 2. Zarządzanie Kontenerami
+### 2.2 Zarządzanie Kontenerami
 
 Przechodzimy do bardziej zaawansowanych technik zarządzania kontenerami Docker.
 
@@ -118,11 +143,11 @@ Przechodzimy do bardziej zaawansowanych technik zarządzania kontenerami Docker.
 
 ---
 
-### 3. Budowanie i Optymalizacja Obrazów
+### 2.3 Budowanie i Optymalizacja Obrazów
 
 Tworzenie własnych obrazów Docker pozwala na pełną kontrolę nad środowiskiem aplikacji.
 
-#### Przykładowy `Dockerfile`
+#### 2.3.1 Przykładowy `Dockerfile`
 
 Oto podstawowy `Dockerfile` dla aplikacji Python.
 
@@ -143,7 +168,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 CMD ["python", "app.py"]
 ```
 
-#### Budowanie Obrazu
+#### 2.3.2 Budowanie Obrazu
 
 Aby zbudować obraz Docker na podstawie `Dockerfile`, użyj poniższej komendy:
 
@@ -151,7 +176,7 @@ Aby zbudować obraz Docker na podstawie `Dockerfile`, użyj poniższej komendy:
 docker build -t my-python-app:latest .
 ```
 
-#### Optymalizacja Obrazów
+#### 2.3.3 Optymalizacja Obrazów
 
 Optymalizacja obrazów Docker może znacznie zmniejszyć ich rozmiar i poprawić wydajność.
 
@@ -175,11 +200,11 @@ Optymalizacja obrazów Docker może znacznie zmniejszyć ich rozmiar i poprawić
 
 ---
 
-### 4. Docker Compose
+### 2.4 Docker Compose
 
 Docker Compose umożliwia definiowanie i uruchamianie wielu kontenerów jako jednej usługi.
 
-#### `docker-compose.yml` – Przykład
+#### 2.4.1 `docker-compose.yml` – Przykład
 
 Poniżej znajduje się przykładowy plik `docker-compose.yml` dla aplikacji webowej i backendu.
 
@@ -200,7 +225,7 @@ services:
       - FLASK_ENV=development
 ```
 
-#### Uruchamianie Docker Compose
+#### 2.4.2 Uruchamianie Docker Compose
 
 - **Uruchomienie usług**:
   ```bash
@@ -214,11 +239,11 @@ services:
 
 ---
 
-### 5. Woluminy i Sieci
+### 2.5 Woluminy i Sieci
 
 Woluminy i sieci w Docker pozwalają na trwałe przechowywanie danych oraz komunikację między kontenerami.
 
-#### Woluminy
+#### 2.5.1 Woluminy
 
 - **Tworzenie woluminu**:
   ```bash
@@ -230,7 +255,7 @@ Woluminy i sieci w Docker pozwalają na trwałe przechowywanie danych oraz komun
   docker run -d -v my-volume:/data ubuntu
   ```
 
-#### Sieci
+#### 2.5.2 Sieci
 
 - **Tworzenie sieci**:
   ```bash
@@ -245,16 +270,16 @@ Woluminy i sieci w Docker pozwalają na trwałe przechowywanie danych oraz komun
 
 ---
 
-### 6. Docker w Produkcji i Best Practices
+### 2.6 Docker w Produkcji i Best Practices
 
 Przygotowanie kontenerów Docker do środowiska produkcyjnego wymaga przestrzegania najlepszych praktyk.
 
 - **Minimalizuj rozmiar obrazów**: Używaj obrazów typu `alpine` lub `slim`, które są lekkie i szybkie.
   
 - **Używaj `docker-compose` lub `Docker Swarm`** do zarządzania wieloma kontenerami, co ułatwia orkiestrację i skalowanie.
-
+  
 - **Logowanie i monitorowanie**: Implementuj rozwiązania takie jak `ELK Stack` (Elasticsearch, Logstash, Kibana) oraz `Prometheus` + `Grafana` do monitorowania i analizy logów.
-
+  
 - **Bezpieczeństwo**:
   - **Nie uruchamiaj kontenerów jako `root`**: Twórz użytkowników o ograniczonych uprawnieniach w `Dockerfile`.
   - **Ustaw limity zasobów**: Określ limity pamięci i CPU (`--memory`, `--cpus`) podczas uruchamiania kontenerów.
@@ -262,7 +287,7 @@ Przygotowanie kontenerów Docker do środowiska produkcyjnego wymaga przestrzega
 
 ---
 
-### Podsumowanie
+### 2.7 Podsumowanie
 
 Ten zaawansowany kurs Dockera obejmował kluczowe zagadnienia niezbędne do efektywnego zarządzania kontenerami w środowisku produkcyjnym:
 
@@ -277,13 +302,13 @@ Opanowanie tych tematów pozwoli Ci na pełne wykorzystanie możliwości Dockera
 
 ---
 
-## Kubernetes – Orkiestracja Kontenerów
+## 3. Kubernetes – Orkiestracja Kontenerów
 
-### 1. Wprowadzenie do Kubernetes
+### 3.1 Wprowadzenie do Kubernetes
 
 Kubernetes to otwartoźródłowa platforma do automatyzacji wdrażania, skalowania i zarządzania aplikacjami kontenerowymi. Umożliwia efektywne zarządzanie dużymi środowiskami kontenerowymi, co jest kluczowe w kontekście chmur hybrydowych.
 
-### 2. Podstawowe Komponenty Kubernetes
+### 3.2 Podstawowe Komponenty Kubernetes
 
 Zrozumienie podstawowych komponentów Kubernetes jest niezbędne do efektywnego zarządzania klastrem.
 
@@ -293,9 +318,9 @@ Zrozumienie podstawowych komponentów Kubernetes jest niezbędne do efektywnego 
 - **ReplicaSet**: Zapewnia określoną liczbę replik Podów, zapewniając wysoką dostępność.
 - **Namespace**: Izoluje zasoby w klastrze, umożliwiając podział środowiska na różne obszary.
 
-### 3. Deployment i Service
+### 3.3 Deployment i Service
 
-#### Przykład Deployment
+#### 3.3.1 Przykład Deployment
 
 Deployment umożliwia zarządzanie cyklem życia aplikacji, automatyzując wdrażanie, skalowanie i aktualizacje.
 
@@ -321,7 +346,7 @@ spec:
         - containerPort: 80
 ```
 
-#### Przykład Service
+#### 3.3.2 Przykład Service
 
 Service zapewnia stały punkt dostępu do zestawu Podów, niezależnie od ich zmieniających się adresów IP.
 
@@ -340,7 +365,7 @@ spec:
   type: LoadBalancer
 ```
 
-### 4. Skalowanie Aplikacji
+### 3.4 Skalowanie Aplikacji
 
 Kubernetes oferuje różne metody skalowania aplikacji, aby dostosować się do zmieniających się obciążeń.
 
@@ -354,14 +379,14 @@ Kubernetes oferuje różne metody skalowania aplikacji, aby dostosować się do 
   kubectl autoscale deployment nginx-deployment --min=2 --max=10 --cpu-percent=80
   ```
 
-### 5. Monitoring i Logowanie
+### 3.5 Monitoring i Logowanie
 
 Monitorowanie i logowanie są kluczowe dla utrzymania zdrowia klastrów i aplikacji.
 
 - **Prometheus i Grafana**: Do monitorowania wydajności i zasobów klastrów oraz wizualizacji danych.
 - **ELK Stack (Elasticsearch, Logstash, Kibana)**: Do zarządzania logami i ich analizy.
 
-### 6. Best Practices w Kubernetes
+### 3.6 Best Practices w Kubernetes
 
 Przestrzeganie najlepszych praktyk zapewnia stabilność, bezpieczeństwo i efektywność środowiska Kubernetes.
 
@@ -370,15 +395,11 @@ Przestrzeganie najlepszych praktyk zapewnia stabilność, bezpieczeństwo i efek
 - **Implementuj polityki bezpieczeństwa**: Kontroluj dostęp i uprawnienia za pomocą RBAC (Role-Based Access Control) oraz Network Policies.
 - **Optymalizuj zasoby**: Ustaw limity i prośby zasobów (`requests` i `limits`) dla kontenerów, aby efektywnie wykorzystywać zasoby klastrów.
 
-### Podsumowanie Kubernetes
-
-Kubernetes jest potężnym narzędziem do zarządzania kontenerami na dużą skalę, oferując automatyzację wdrażania, skalowania i operacji. Jego integracja z Dockerem umożliwia efektywne zarządzanie aplikacjami w środowiskach chmur hybrydowych, zapewniając elastyczność i niezawodność.
-
-### Zarządzanie Deploymentami w Kubernetes
+### 3.7 Zarządzanie Deploymentami w Kubernetes
 
 Zarządzanie Deploymentami pozwala na efektywne kontrolowanie liczby replik Podów oraz aktualizowanie aplikacji bez przestojów.
 
-#### 1. Znajdź nazwę Deploymentu
+#### 3.7.1 Znajdź nazwę Deploymentu
 
 Aby zarządzać Deploymentem, najpierw zidentyfikuj jego nazwę:
 
@@ -389,11 +410,11 @@ kubectl get deployments
 Przykładowy wynik:
 
 ```
-NAME           READY   UP-TO-DATE   AVAILABLE   AGE
-drone-swarm    5/5     5            5           92m
+NAME              READY   UP-TO-DATE   AVAILABLE   AGE
+drone-swarm       5/5     5            5           92m
 ```
 
-#### 2. Usuń Deployment
+#### 3.7.2 Usuń Deployment
 
 Aby usunąć Deployment i wszystkie przez niego zarządzane Pody:
 
@@ -401,7 +422,7 @@ Aby usunąć Deployment i wszystkie przez niego zarządzane Pody:
 kubectl delete deployment drone-swarm
 ```
 
-#### 3. Sprawdź status Podów
+#### 3.7.3 Sprawdź status Podów
 
 Upewnij się, że Pody zostały usunięte:
 
@@ -413,7 +434,7 @@ Pody zarządzane przez usunięty Deployment nie powinny już być widoczne na li
 
 ---
 
-#### Alternatywnie: Skalowanie Deploymentu do zera
+### 3.8 Skalowanie Deploymentu do zera
 
 Jeśli nie chcesz usuwać Deploymentu, ale chcesz zatrzymać Pody, możesz zmniejszyć liczbę replik do zera:
 
@@ -429,55 +450,55 @@ kubectl scale deployment drone-swarm --replicas=5
 
 ---
 
-## Docker w Chmurach Hybrydowych
+## 4. Docker w Chmurach Hybrydowych
 
-### 1. Co to jest Chmura Hybrydowa?
+### 4.1 Co to jest Chmura Hybrydowa?
 
 Chmura hybrydowa łączy zasoby chmury publicznej i prywatnej, umożliwiając płynne przenoszenie aplikacji i danych między nimi. To podejście zapewnia elastyczność, skalowalność oraz optymalizację kosztów, umożliwiając korzystanie z najlepszych cech obu typów chmur.
 
-### 2. Zalety Docker w Chmurach Hybrydowych
+### 4.2 Zalety Docker w Chmurach Hybrydowych
 
 Docker odgrywa kluczową rolę w implementacji rozwiązań chmur hybrydowych dzięki swoim unikalnym cechom:
 
 - **Portabilność**: Kontenery Docker działają spójnie w różnych środowiskach, co ułatwia migrację aplikacji między chmurami publicznymi, prywatnymi i lokalnymi.
   
 - **Skalowalność**: Docker umożliwia łatwe skalowanie aplikacji w zależności od zapotrzebowania, zarówno w środowiskach chmurowych, jak i lokalnych.
-
+  
 - **Efektywność**: Kontenery są lekkie i szybkie, co pozwala na lepsze wykorzystanie zasobów w różnych środowiskach chmurowych.
 
-### 3. Przykłady Zastosowań
+### 4.3 Przykłady Zastosowań
 
 - **Mikroserwisy**: Docker ułatwia budowanie i zarządzanie mikroserwisami w różnych środowiskach chmurowych, zapewniając niezależność i łatwość skalowania poszczególnych komponentów.
-
+  
 - **DevOps**: Integracja Docker z pipeline CI/CD (Continuous Integration/Continuous Deployment) w chmurach hybrydowych umożliwia automatyczne testowanie, budowanie i wdrażanie aplikacji.
-
+  
 - **Migracja Aplikacji**: Docker ułatwia przenoszenie aplikacji z lokalnych serwerów do chmur publicznych lub odwrotnie, minimalizując problemy związane z kompatybilnością środowisk.
 
-### 4. Integracja Docker z Platformami Chmurowymi
+### 4.4 Integracja Docker z Platformami Chmurowymi
 
 Docker można łatwo zintegrować z różnymi platformami chmurowymi, co umożliwia efektywne zarządzanie i wdrażanie kontenerów.
 
 - **AWS ECS/EKS**: Zarządzanie kontenerami Docker na Amazon Web Services za pomocą Amazon Elastic Container Service (ECS) lub Amazon Elastic Kubernetes Service (EKS).
-
+  
 - **Azure Kubernetes Service (AKS)**: Orkiestracja kontenerów Docker na Microsoft Azure za pomocą AKS, co umożliwia łatwe zarządzanie klastrami Kubernetes.
-
+  
 - **Google Kubernetes Engine (GKE)**: Zarządzanie kontenerami Docker na Google Cloud Platform za pomocą GKE, oferując automatyzację i skalowanie klastrów Kubernetes.
 
-### Podsumowanie Docker w Chmurach Hybrydowych
+### 4.5 Podsumowanie Docker w Chmurach Hybrydowych
 
 Docker odgrywa kluczową rolę w implementacji rozwiązań chmur hybrydowych, oferując portabilność, skalowalność i efektywność. Dzięki integracji z platformami chmurowymi, Docker umożliwia elastyczne zarządzanie aplikacjami w różnych środowiskach, co jest niezbędne w nowoczesnych architekturach IT. To podejście zapewnia elastyczność, skalowalność oraz optymalizację kosztów, umożliwiając korzystanie z najlepszych cech chmur publicznych i prywatnych.
 
 ---
 
-## Zarządzanie Rojem Dronów w Kubernetes
+## 5. Zarządzanie Rojem Dronów w Kubernetes
 
-### 1. Wprowadzenie
+### 5.1 Wprowadzenie
 
 Zarządzanie rojem dronów w Kubernetes wymaga efektywnych metod komunikacji oraz centralizacji zbierania danych. W tym przewodniku przedstawimy zaawansowane techniki konfiguracji Kubernetes i Docker, które pozwolą na skuteczne zarządzanie dronami oraz zbieranie danych z każdego z nich. Omówimy także alternatywne podejścia oraz rozwiązania problemów związanych z komunikacją i zarządzaniem zasobami.
 
-### 2. Konfiguracja Headless Service dla Rojów Dronów
+### 5.2 Konfiguracja Headless Service dla Rojów Dronów
 
-#### Definicja Headless Service
+#### 5.2.1 Definicja Headless Service
 
 Headless Service w Kubernetes jest definiowany poprzez ustawienie `clusterIP: None`. Służy on głównie do:
 
@@ -500,15 +521,15 @@ spec:
       targetPort: 5000
 ```
 
-#### Ograniczenia Headless Service w Komunikacji UDP
+#### 5.2.2 Ograniczenia Headless Service w Komunikacji UDP
 
 Headless Service nie zapewnia mechanizmu multicastingu UDP do wszystkich Podów. Oznacza to, że każda wiadomość UDP jest kierowana tylko do jednego z Podów, często do samego nadawcy. To ograniczenie uniemożliwia centralne zbieranie danych od wszystkich dronów.
 
-### 3. Implementacja Centralnego Agregatora Danych
+### 5.3 Implementacja Centralnego Agregatora Danych
 
 Aby skutecznie zbierać dane od wszystkich dronów, konieczne jest stworzenie centralnego agregatora, który będzie odbierał dane od wszystkich dronów w roju.
 
-#### Tworzenie Skryptu Agregatora
+#### 5.3.1 Tworzenie Skryptu Agregatora
 
 Stwórz skrypt `aggregator.py`, który będzie nasłuchiwał na określonym porcie UDP i zbierał dane od wszystkich dronów.
 
@@ -537,7 +558,7 @@ if __name__ == "__main__":
     run_aggregator()
 ```
 
-#### Dockerfile dla Agregatora
+#### 5.3.2 Dockerfile dla Agregatora
 
 Utwórz oddzielny `Dockerfile` dla agregatora, aby móc go wdrożyć jako osobny Pod w Kubernetes.
 
@@ -556,7 +577,7 @@ ENV AGGREGATOR_PORT=5001
 CMD ["python", "aggregator.py"]
 ```
 
-#### Deployment i Service dla Agregatora
+#### 5.3.3 Deployment i Service dla Agregatora
 
 Zdefiniuj Deployment i Service dla agregatora, aby był dostępny w klastrze.
 
@@ -603,7 +624,7 @@ spec:
   type: ClusterIP
 ```
 
-#### Modyfikacja Logiki Drona
+#### 5.3.4 Modyfikacja Logiki Drona
 
 Zaktualizuj `drone_logic.py`, aby drony wysyłały dane do `aggregator-service` zamiast do `drone-service`.
 
@@ -644,7 +665,7 @@ while True:
     time.sleep(5)
 ```
 
-#### Aktualizacja Deployment dla Dronów
+#### 5.3.5 Aktualizacja Deployment dla Dronów
 
 Zaktualizuj plik Deployment dla dronów, aby ustawić zmienne środowiskowe `AGGREGATOR_HOST` i `AGGREGATOR_PORT`.
 
@@ -682,9 +703,9 @@ spec:
             - containerPort: 5000
 ```
 
-#### Wdrożenie Konfiguracji w Kubernetes
+#### 5.3.6 Wdrożenie Konfiguracji w Kubernetes
 
-Upewnij się, że obrazy Docker dla dronów i agregatora są zbudowane i przesłane do rejestru Docker (`localhost:5000` w tym przypadku - [Zarządzanie Obrazami i Rejestrem Docker](budowanie-i-zarządzanie-obrazami-dockerowymi.md#uruchomienie-lokalnego-rejestru-docker).
+Upewnij się, że obrazy Docker dla dronów i agregatora są zbudowane i przesłane do rejestru Docker (`localhost:5000` w tym przypadku).
 
 ```bash
 # Budowanie obrazu drona
@@ -706,30 +727,11 @@ kubectl apply -f aggregator-service.yaml
 kubectl apply -f drone-deployment.yaml
 ```
 
-### Weryfikacja Działania Agregatora
-
-Sprawdź logi agregatora, aby upewnić się, że odbiera on dane od wszystkich dronów.
-
-```bash
-kubectl logs deployment/aggregator
-```
-
-Powinieneś zobaczyć coś podobnego do:
-
-```
-Aggregator listening on port 5001
-Received from ('10.1.0.198', 5001): drone_1 at position 50, 60
-Received from ('10.1.0.199', 5001): drone_2 at position 45, 55
-...
-```
-
----
-
-### 4. Usuwanie Usługi Mosquitto
+### 5.4 Usuwanie Usługi Mosquitto
 
 Jeśli zdecydujesz się usunąć Mosquitto z klastra Kubernetes, wykonaj poniższe kroki.
 
-#### Sprawdzenie Istniejących Zasobów Mosquitto
+#### 5.4.1 Sprawdzenie Istniejących Zasobów Mosquitto
 
 Najpierw upewnij się, jakie zasoby są związane z Mosquitto w Twoim klastrze.
 
@@ -763,7 +765,7 @@ kubernetes       ClusterIP   10.96.0.1        <none>        443/TCP    4h3m
 mqtt-broker      ClusterIP   10.100.174.192   <none>        1883/TCP   4m41s
 ```
 
-#### Usunięcie Deployment i Service dla Mosquitto
+#### 5.4.2 Usunięcie Deployment i Service dla Mosquitto
 
 Aby usunąć Mosquitto, musisz usunąć zarówno **Deployment**, jak i **Service** związane z tym brokerem MQTT.
 
@@ -787,7 +789,7 @@ Możesz również usunąć oba zasoby jednocześnie za pomocą jednego polecenia
 kubectl delete deployment mosquitto service mosquitto
 ```
 
-#### Weryfikacja Usunięcia Zasobów
+#### 5.4.3 Weryfikacja Usunięcia Zasobów
 
 Po wykonaniu powyższych kroków, sprawdź, czy zasoby zostały pomyślnie usunięte.
 
@@ -822,13 +824,13 @@ mqtt-broker      ClusterIP   10.100.174.192   <none>        1883/TCP   4m41s
 
 ---
 
-### 5. Alternatywne Podejścia do Agregacji Danych
+### 5.5 Alternatywne Podejścia do Agregacji Danych
 
 Oprócz centralnego agregatora UDP, istnieją inne metody centralizacji danych od dronów, takie jak użycie message brokerów (np. MQTT) lub HTTP REST API.
 
-#### Użycie Message Broker (MQTT)
+#### 5.5.1 Użycie Message Broker (MQTT)
 
-**MQTT** jest lekkim protokołem publikacji/subskrypcji, idealnym do komunikacji IoT. Każdy dron może publikować swoje dane na określonym temacie, a agregator/subskrybent może odbierać te dane.
+**MQTT** jest lekkim protokołem publikacja/subskrypcja, idealnym do komunikacji IoT. Każdy dron może publikować swoje dane na określonym temacie, a agregator/subskrybent może odbierać te dane.
 
 ##### Instalacja MQTT Broker (np. Mosquitto)
 
@@ -1012,148 +1014,13 @@ kubectl apply -f mqtt-aggregator-deployment.yaml
 kubectl apply -f mqtt-aggregator-service.yaml
 ```
 
-### Zalety Użycia MQTT
+---
 
-- **Skalowalność**: MQTT jest zaprojektowany do obsługi dużej liczby klientów, co jest idealne dla roju dronów.
-  
-- **Efektywność**: Lekki protokół, który minimalizuje zużycie pasma i zasobów, co jest kluczowe dla aplikacji IoT.
-  
-- **Elastyczność**: Możliwość subskrybowania różnych tematów i filtrowania danych umożliwia precyzyjne zarządzanie informacjami.
-
-#### Użycie HTTP REST API
-
-Każdy dron może wysyłać dane za pomocą żądań HTTP POST do centralnego serwera API.
-
-##### Implementacja Serwera API
-
-**Plik: `aggregator_api.py`**
-
-```python
-from flask import Flask, request
-app = Flask(__name__)
-
-@app.route('/update_position', methods=['POST'])
-def update_position():
-    data = request.json
-    print(f"Received from {data['name']}: position {data['x']}, {data['y']}")
-    return {"status": "success"}, 200
-
-if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5001)
-```
-
-##### Dockerfile dla Serwera API
-
-**Plik: `aggregator_api/Dockerfile`**
-
-```dockerfile
-FROM python:3.11-slim
-
-WORKDIR /app
-COPY aggregator_api.py /app/aggregator_api.py
-
-RUN pip install flask
-
-ENV FLASK_APP=aggregator_api.py
-
-CMD ["python", "aggregator_api.py"]
-```
-
-##### Konfiguracja Dronów do Wysyłania HTTP POST
-
-**Zaktualizowany `drone_logic.py`:**
-
-```python
-import os
-import time
-import random
-import requests
-
-DRONE_NAME = os.getenv("DRONE_NAME", f"drone_{random.randint(1000, 9999)}")
-AGGREGATOR_API = os.getenv("AGGREGATOR_API", "http://aggregator-service:5001/update_position")
-PUBLISH_INTERVAL = float(os.getenv("PUBLISH_INTERVAL", "5.0"))
-
-position = [random.randint(0, 100), random.randint(0, 100)]
-
-while True:
-    data = {
-        "name": DRONE_NAME,
-        "x": position[0],
-        "y": position[1]
-    }
-    try:
-        response = requests.post(AGGREGATOR_API, json=data)
-        print(f"[{DRONE_NAME}] Sent data: {data}, Response: {response.status_code}")
-    except Exception as e:
-        print(f"[{DRONE_NAME}] Error sending data: {e}")
-
-    # Prosta symulacja ruchu
-    position[0] += random.randint(-1, 1)
-    position[1] += random.randint(-1, 1)
-    time.sleep(PUBLISH_INTERVAL)
-```
-
-##### Deployment i Service dla Serwera API
-
-**Plik: `aggregator-api-deployment.yaml`**
-
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: aggregator-api
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: aggregator-api
-  template:
-    metadata:
-      labels:
-        app: aggregator-api
-    spec:
-      containers:
-        - name: aggregator-api
-          image: localhost:5000/aggregator-api:latest
-          ports:
-            - containerPort: 5001
-```
-
-**Plik: `aggregator-api-service.yaml`**
-
-```yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: aggregator-service
-spec:
-  selector:
-    app: aggregator-api
-  ports:
-    - port: 5001
-      targetPort: 5001
-  type: ClusterIP
-```
-
-**Zastosowanie:**
-
-```bash
-# Budowanie obrazu serwera API
-cd aggregator_api/
-docker build -t localhost:5000/aggregator-api:latest .
-docker push localhost:5000/aggregator-api:latest
-
-# Zastosowanie konfiguracji w Kubernetes
-kubectl apply -f aggregator-api-deployment.yaml
-kubectl apply -f aggregator-api-service.yaml
-kubectl apply -f drone-deployment.yaml
-```
-
-### 6. Rozwiązywanie Problemów w PowerShell
+### 5.6 Rozwiązywanie Problemów w PowerShell
 
 PowerShell nie posiada bezpośredniego odpowiednika `grep`, ale można użyć `Select-String` lub `Where-Object` do filtrowania wyników.
 
-#### Zastąpienie `grep` w PowerShell
+#### 5.6.1 Zastąpienie `grep` w PowerShell
 
 - **Filtrowanie usług zawierających "mqtt-broker":**
 
@@ -1175,7 +1042,7 @@ kubectl get svc -n default -o json | ConvertFrom-Json | Select-Object -ExpandPro
 
 ---
 
-### 7. Podsumowanie
+### 5.7 Podsumowanie
 
 W tej sekcji omówiliśmy zaawansowane techniki zarządzania rojem dronów w Kubernetes, w tym:
 
@@ -1189,9 +1056,9 @@ Dzięki tym technikom możesz efektywnie zarządzać rojem dronów, zbierać i a
 
 ---
 
-## Opis Projektu
+## 6. Opis Projektu
 
-### Idea i Koncepcja
+### 6.1 Idea i Koncepcja
 
 W centrum projektu znajduje się symulacja roju dronów działających w środowisku chmurowym i kontenerowym. Każdy dron funkcjonuje jako autonomiczny kontener, komunikujący się z pozostałymi elementami systemu za pomocą protokołu MQTT. Wspólna komunikacja oparta o model publikacja-subskrypcja (publish-subscribe) zapewnia luźne powiązanie komponentów, elastyczność i skalowalność.
 
@@ -1203,9 +1070,7 @@ W centrum projektu znajduje się symulacja roju dronów działających w środow
 4. **Agregacja i Dostęp do Danych** – Agregator zbiera dane z dronów, przetwarza je i udostępnia zewnętrznemu światu poprzez REST API (aggregator-api), co umożliwia zarządzanie rojem i analizę danych.
 5. **Monitorowanie, CI/CD, Bezpieczeństwo** – Projekt uwzględnia pipeline’y CI/CD, monitoring (Prometheus, Grafana), logowanie (ELK), strategie wdrożeń (Blue-Green, Canary), bezpieczeństwo (RBAC, Network Policies, szyfrowanie).
 
----
-
-### Poziomy Architektoniczne i Komponenty
+### 6.2 Poziomy Architektoniczne i Komponenty
 
 #### Poziom 1: Fundamenty Komunikacji i Orkiestracji
 
@@ -1259,7 +1124,7 @@ W centrum projektu znajduje się symulacja roju dronów działających w środow
 
 **Monitoring i Wizualizacja**  
 - *Prometheus, Grafana:* Zbierają metryki z dronów, agregatora, API oraz brokera, wizualizując obciążenie, wykorzystanie zasobów, poziom baterii dronów.  
-- *ELK (Elasticsearch, Logstash, Kibana):* Agregują i analizują logi wszystkich komponentów, wspierając diagnozę i debugowanie.
+- *ELK (Elasticsearch, Logstash, Kibana):* Agregują i analizują logi wszystkich komponentów systemu, wspierając diagnozę i debugowanie.
 
 **CI/CD**  
 - *Idea:* Automatyczne pipeline’y (GitLab CI, Jenkins, ArgoCD) kompilują i testują kod, budują obrazy Docker, wdrażają je do Kubernetes.  
@@ -1280,13 +1145,14 @@ W centrum projektu znajduje się symulacja roju dronów działających w środow
 
 ---
 
-## Integracja i Przepływ
+## 6. Integracja i Przepływ
 
 1. **Drony** publikują dane o swojej pozycji i stanie przez MQTT:
    - **MQTT Broker** (Mosquitto) odbiera i przechowuje te informacje tymczasowo.
    
 2. **Agregator** subskrybuje temat `drones/+/position`:
    - Przetwarza dane i agreguje je, tworząc jednolitą bazę informacji o stanie całego roju.
+   - Agregator może również zapisywać dane do bazy danych oraz przekazywać je dalej do Aggregator API.
    
 3. **Aggregator API** zapewnia interfejs REST:
    - Użytkownicy i zewnętrzne systemy pobierają informacje (`GET /api/drones/...`) lub wysyłają komendy sterujące do dronów.
@@ -1305,7 +1171,7 @@ W centrum projektu znajduje się symulacja roju dronów działających w środow
 
 ---
 
-## Rola dla Modeli AI
+## 7. Rola dla Modeli AI
 
 Ten opis służy jako główny punkt odniesienia dla modeli AI, które mają operować na kodzie i logice projektu. Dzięki niemu:
 
@@ -1315,26 +1181,35 @@ Ten opis służy jako główny punkt odniesienia dla modeli AI, które mają ope
 
 ---
 
-## Podsumowanie
+## 8. Informacje z Istniejących Plików
 
-Przedstawiona architektura to kompleksowa platforma symulująca rozproszony system dronów zarządzanych i monitorowanych w środowisku chmurowym. Opiera się na konteneryzacji, komunikacji MQTT, orkiestracji Kubernetes, agregacji danych i udostępnianiu ich przez API. Zapewnia skalowalność, elastyczność, bezpieczeństwo, a także instrumenty do integracji z modelami AI, które mogą rozwijać i optymalizować kod na podstawie klarownej mapy funkcjonalnej i architektonicznej.
+Poniżej znajduje się tabela zawierająca odnośniki do istniejących dokumentów w katalogu `_docs/` oraz ich opisy:
 
-Dzięki temu projektowi jesteś w stanie efektywnie zarządzać dużymi flotami dronów, centralizować ich dane oraz zapewniać ich niezawodne działanie w środowisku chmurowym i kontenerowym.
-
----
-
-## Podsumowanie
-
-W tej dokumentacji przeanalizowaliśmy zaawansowane aspekty zarządzania ekosystemem MQTT oraz rojem dronów przy użyciu Docker i Kubernetes w kontekście chmur hybrydowych. Omówiliśmy:
-
-- **Zaawansowany kurs Dockera**: Od podstawowych komend po optymalizację obrazów i zarządzanie kontenerami.
-- **Orkiestrację kontenerów z Kubernetes**: Podstawowe komponenty, deployment, skalowanie, monitoring i najlepsze praktyki.
-- **Docker w chmurach hybrydowych**: Zalety, przykłady zastosowań oraz integracja z głównymi platformami chmurowymi.
-- **Zaawansowane zarządzanie rojem dronów**: Konfiguracja headless service, implementacja agregatora danych, usuwanie usług Mosquitto oraz alternatywne podejścia do agregacji danych.
-- **Opis projektu**: Idea, koncepcja, architektura, integracja oraz rola modeli AI w projekcie.
+| **Dokument**                                       | **Link**                                                                                   | **Opis**                                                         |
+|----------------------------------------------------|--------------------------------------------------------------------------------------------|------------------------------------------------------------------|
+| Budowanie i zarządzanie obrazami Dockerowymi       | [budowanie-i-zarządzanie-obrazami-dockerowymi.md](./budowanie-i-zarządzanie-obrazami-dockerowymi.md) | Budowanie i zarządzanie obrazami Docker (multi-stage builds, versioning, repozytoria). |
+| Strategie wdrożeń Blue-Green i Canary             | [strategia_blue_green_canary.md](./strategia_blue_green_canary.md)                        | Strategie wdrożeń Blue-Green i Canary.                          |
+| Ogólny opis projektu                               | [readme.md](./readme.md)                                                                  | Ogólny opis projektu: symulacja roju, komunikacja MQTT, wdrożenie, monitoring, CI/CD. |
+| Dokumentacja Brokera MQTT                          | [broker_mqtt.md](./broker_mqtt.md)                                                        | Szczegółowa Dokumentacja Brokera MQTT.                           |
+| Szczegółowy opis agregatora                        | [aggregator_details.md](./aggregator_details.md)                                          | Szczegółowy opis agregatora.                                     |
+| Szczegółowy opis Aggregator API                    | [aggregator_api_details.md](./aggregator_api_details.md)                                  | Szczegółowy opis Aggregator API.                                 |
+| Dokumentacja Bazy Danych                           | [database.md](./database.md)                                                                | Dokumentacja Bazy Danych.                                        |
+| Dokumentacja Frontend                               | [frontend.md](./frontend.md)                                                                | Dokumentacja Frontend.                                            |
 
 ---
 
-**Plik:** `_docs/readme.md`
+## 9. Odnośniki
 
-[Powrót do głównej dokumentacji](../README.MD)
+- [Wprowadzenie do Docker i Kubernetes - Chmury Hybrydowe](./readme.md)
+- [Kubernetes – Orkiestracja Kontenerów](./readme.md#3-kubernetes---orkiestracja-kontenerow)
+- [Docker w Chmurach Hybrydowych](./readme.md#4-docker-w-chmurach-hybrydowych)
+- [Strategia Blue-Green i Canary](./strategia_blue_green_canary.md)
+- [Budowanie i Zarządzanie Obrazami Dockerowymi](./budowanie-i-zarządzanie-obrazami-dockerowymi.md)
+- [Ogólny Opis Projektu](./readme.md#6-opis-projektu)
+- [Dokumentacja Brokera MQTT](./broker_mqtt.md)
+- [Szczegółowy opis agregatora](./aggregator_details.md)
+- [Szczegółowy opis Aggregator API](./aggregator_api_details.md)
+- [Dokumentacja Bazy Danych](./database.md)
+- [Dokumentacja Frontend](./frontend.md)
+
+---

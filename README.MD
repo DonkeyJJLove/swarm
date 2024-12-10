@@ -1,426 +1,231 @@
-# Symulacja Rojów Dronów w Architekturze Kontenerowej
+## Dokumentacja Zarządzania Ekosystemem MQTT (Broker & Aggregator) w Docker i Kubernetes
 
-Zarządzanie rojem dronów w środowisku chmurowym to złożony, wielowymiarowy proces, który integruje zaawansowane techniki konteneryzacji, orkiestracji, komunikacji oraz inteligentnego sterowania. Głównym celem jest traktowanie każdego drona jako niezależnego kontenera, co umożliwia jego autonomiczne działanie oraz płynną komunikację z innymi dronami i komponentami systemu. Wykorzystanie podejścia chmurowego pozwala na dynamiczne skalowanie liczby dronów w zależności od aktualnych potrzeb, automatyzację procesów wdrażania i aktualizacji oraz zastosowanie zaawansowanych narzędzi do monitoringu i analizy danych.
+### Spis Treści
 
-### **Zalety Takiego Rozwiązania**
-
-- **Skalowalność:**
-  - **Dynamiczne Przydzielanie Zasobów:** W środowisku chmurowym liczba aktywnych dronów może być elastycznie dostosowywana do bieżącego zapotrzebowania. Wzrost obciążenia umożliwia łatwe dodawanie nowych instancji, natomiast spadek – redukcję ich liczby.
-  - **Horizontalne Skalowanie:** Kubernetes ułatwia skalowanie poziome, co pozwala systemowi obsługiwać zmienne obciążenia poprzez rozdzielanie dronów na wiele węzłów.
-
-- **Elastyczność i Modularność:**
-  - **Niezależny Rozwój:** Konteneryzacja umożliwia niezależny rozwój, testowanie i wdrażanie poszczególnych komponentów systemu, co zwiększa modularność i ułatwia integrację nowych funkcjonalności bez wpływu na działające elementy.
-  - **Architektura Mikroserwisów:** Przyjęcie podejścia mikroserwisowego pozwala na rozwój, wdrażanie i skalowanie każdego serwisu niezależnie, co zwiększa ogólną elastyczność systemu.
-
-- **Automatyzacja:**
-  - **Continuous Integration/Continuous Deployment (CI/CD):** Zautomatyzowane pipeline'y CI/CD usprawniają proces budowania, testowania i wdrażania aplikacji, co pozwala na szybkie i niezawodne przenoszenie zmian kodu do środowisk produkcyjnych.
-  - **Infrastructure as Code (IaC):** Narzędzia takie jak Terraform i Helm Charts umożliwiają automatyzację provisioning’u infrastruktury oraz zarządzanie konfiguracją, minimalizując ręczne interwencje i potencjalne błędy.
-
-- **Oszczędność Zasobów:**
-  - **Optymalne Wykorzystanie Chmury:** Efektywne zarządzanie zasobami chmurowymi oraz automatyczne skalowanie pozwala na minimalizację kosztów poprzez płacenie tylko za faktycznie wykorzystywaną infrastrukturę.
-  - **Zarządzanie Kosztami:** Dostawcy chmury oferują różnorodne modele cenowe oraz narzędzia do zarządzania kosztami, które pomagają monitorować i optymalizować wydatki w zależności od wzorców wykorzystania.
-
-### **Wyzwania i Ograniczenia**
-
-- **Złożoność Architektury:**
-  - **Wymagania Techniczne:** Zarządzanie dużym rojem kontenerów wymaga dogłębnej wiedzy na temat technologii chmurowych, protokołów komunikacyjnych oraz narzędzi do monitoringu i zabezpieczeń.
-  - **Integracja Systemów:** Zapewnienie płynnej integracji między różnymi komponentami i usługami zwiększa złożoność architektoniczną systemu.
-
-- **Nadmiarowe Koszty i Opóźnienia:**
-  - **Koszty Operacyjne:** Chociaż elastyczność chmury jest korzystna, może prowadzić do wyższych kosztów operacyjnych, jeśli nie jest odpowiednio zarządzana.
-  - **Opóźnienia Sieciowe:** Zwiększony ruch sieciowy oraz czas reakcji brokerów MQTT, baz danych czy systemów monitoringu mogą wprowadzać opóźnienia w komunikacji, co może negatywnie wpływać na operacje w czasie rzeczywistym.
-
-- **Bezpieczeństwo:**
-  - **Ochrona Danych:** Autonomiczne drony komunikujące się w rozproszonym środowisku chmurowym muszą być chronione przed nieautoryzowanym dostępem, atakami i wyciekami danych.
-  - **Zaawansowane Środki Bezpieczeństwa:** Konieczne jest wdrożenie solidnych polityk bezpieczeństwa, mechanizmów uwierzytelniania oraz technik szyfrowania, aby zabezpieczyć system przed potencjalnymi zagrożeniami.
-
-Projekt symulacji roju dronów ma na celu zaprezentowanie podejścia do zarządzania wieloma urządzeniami IoT w architekturze kontenerowej i chmurowej. Integruje on konteneryzację ([Docker](#zaawansowany-kurs-docker)), orkiestrację ([Kubernetes](#kubernetes---orkiestracja-kontenerow)), komunikację ([MQTT](#szczeg%C3%B3%C5%82y-komunikacji-sieciowej-i-wdro%C5%BCenia)), pipeline'y CI/CD, monitoring ([Prometheus i Grafana](#ci-cd-i-monitoring)) oraz strategie wdrożeń ([Blue-Green, Canary](#strategia-blue-green-canary)), tworząc kompletne i skalowalne środowisko dla roju dronów.
+1. [Wprowadzenie](#1-wprowadzenie)
+2. [Zaawansowany Kurs Docker](#2-zaawansowany-kurs-docker)
+3. [Kubernetes – Orkiestracja Kontenerów](#3-kubernetes---orkiestracja-kontenerow)
+4. [Docker w Chmurach Hybrydowych](#4-docker-w-chmurach-hybrydowych)
+5. [Zarządzanie Rojem Dronów w Kubernetes](#5-zarz%C4%85dzanie-rojem-dron%C3%B3w-w-kubernetes)
+6. [Opis Projektu](#6-opis-projektu)
+7. [Podsumowanie](#7-podsumowanie)
 
 ---
 
-## Architektura Systemu
+## 1. Wprowadzenie
 
-Architektura systemu symulacji roju dronów w środowisku kontenerowym i chmurowym została zaprojektowana w celu zapewnienia skalowalności, elastyczności oraz niezawodności. System składa się z kilku kluczowych komponentów, które współpracują ze sobą, umożliwiając efektywne zarządzanie dronami, komunikację oraz analizę danych.
+Witaj w dokumentacji dotyczącej zarządzania ekosystemem MQTT (Broker & Aggregator) w środowisku Docker i Kubernetes. Projekt koncentruje się na symulacji roju dronów, gdzie każdy dron jest traktowany jako niezależny kontener. Dzięki temu podejściu możliwe jest autonomiczne działanie każdego drona oraz efektywna komunikacja z innymi elementami systemu.
 
-### **Diagram Architektury**
+### **Dlaczego MQTT i Kubernetes?**
 
-```
-                           +-------------------------------+
-                           |         Broker MQTT          |
-                           |         (Mosquitto)          |
-                           +-------------------------------+
-                                         ^
-                                         |
-           +-----------------------------+-----------------------------+
-           |                             |                             |
-+----------v----------+     +----------v----------+     +----------v----------+
-|       Dron 1        |     |       Dron 2        |     |       Dron N        |
-| Publikuje dane MQTT |     | Publikuje dane MQTT |     | Publikuje dane MQTT |
-+---------------------+     +---------------------+     +---------------------+
-                                         |
-                                         v
-                           +-------------------------------+
-                           |          Agregator           |
-                           |   (Subskrybuje topic MQTT)   |
-                           +-------------------------------+
-                                         |
-                                         v
-                           +-------------------------------+
-                           |        Aggregator API        |
-                           |    (REST API dla danych)     |
-                           +-------------------------------+
-                                         |
-                                         v
-                           +-------------------------------+
-                           |          Baza Danych          |
-                           |      (PostgreSQL/MySQL)       |
-                           +-------------------------------+
-                                         |
-                                         v
-                           +-------------------------------+
-                           |      Interfejs Użytkownika    |
-                           |        (Web Dashboard)        |
-                           +-------------------------------+
-```
+- **MQTT (Message Queuing Telemetry Transport)**: Lekki protokół komunikacyjny idealny dla środowisk IoT, takich jak roje dronów. Umożliwia efektywną wymianę danych pomiędzy dużą liczbą urządzeń.
+- **Kubernetes**: Potężna platforma do orkiestracji kontenerów, która zapewnia skalowalność, niezawodność oraz automatyzację zarządzania aplikacjami kontenerowymi.
 
-### **Opis Komponentów**
+### **Cel Dokumentacji**
 
-#### 1. **Drony (`drones/`)**
+Dokumentacja jest podzielona na dwie główne części:
 
-- **Rola:** Symulacja autonomicznych dronów w systemie.
-- **Funkcje:**
-  - **Generowanie Danych:** Każdy dron generuje informacje dotyczące swojej pozycji, stanu baterii oraz innych istotnych parametrów.
-  - **Publikowanie Danych:** Dane są publikowane na brokerze MQTT, umożliwiając ich dalszą dystrybucję.
-  - **Odbiór Komend:** Drony odbierają komendy sterujące z agregatora lub API, co pozwala na ich zdalne kontrolowanie.
-- **MQTT Topic:**
-  ```plaintext
-  drones/{drone_id}/position
-  ```
-- **Szczegółowa Dokumentacja:** [Dokumentacja Dronów](./_docs/drones_component.md)
-- **Pliki:** [Kod drona i konfiguracja](drones/)
+- **`README.MD`**: Ogólny opis projektu, jego celów oraz struktury.
+- **`_docs/readme.md`**: Szczegółowe informacje dotyczące implementacji, konfiguracji i zarządzania poszczególnymi komponentami projektu.
 
-#### 2. **Broker MQTT (`server/mqtt/`)**
-
-- **Rola:** Centralny węzeł komunikacyjny systemu.
-- **Funkcje:**
-  - **Odbieranie Danych:** Broker MQTT odbiera dane publikowane przez drony.
-  - **Dystrybucja Danych:** Rozsyła odebrane dane do subskrybujących komponentów, takich jak agregator.
-- **Konfiguracja:**
-  - **Deployment:** Wdrażany w Kubernetes jako usługa z wykorzystaniem Mosquitto, co zapewnia skalowalność i niezawodność.
-- **Pliki:** [Konfiguracja MQTT](server/mqtt/)
-- **Szczegółowe Wyjaśnienie:** [Dokumentacja Brokera MQTT](./_docs/broker_mqtt.md)
-
-#### 3. **Agregator (`aggregator/`)**
-
-- **Rola:** Zbieranie i przetwarzanie danych od dronów.
-- **Funkcje:**
-  - **Subskrypcja Danych:** Subskrybuje odpowiednie topiki MQTT, aby odbierać dane publikowane przez drony.
-  - **Agregacja i Analiza:** Agreguje i analizuje dane w czasie rzeczywistym, umożliwiając natychmiastową reakcję na zmieniające się warunki.
-  - **Przechowywanie i Przekazywanie Danych:** Może zapisywać dane do bazy danych lub przekazywać je dalej do API, w zależności od potrzeb.
-- **MQTT Subskrypcja:**
-  ```plaintext
-  drones/+/position
-  ```
-- **Pliki:** [Kod agregatora](aggregator/)
-- **Szczegółowe Wyjaśnienie:** [Szczegółowy opis agregatora](./_docs/aggregator_details.md)
-
-#### 4. **Aggregator API (`aggregator-api/`)**
-
-- **Rola:** Interfejs do komunikacji zewnętrznej.
-- **Funkcje:**
-  - **Udostępnianie Danych:** Dostarcza zebrane dane z agregatora za pomocą REST API, umożliwiając dostęp do nich zewnętrznym aplikacjom.
-  - **Zarządzanie Roju Dronów:** Umożliwia zarządzanie dronami, w tym aktualizację ich parametrów oraz wysyłanie komend sterujących.
-  - **Monitorowanie Statusu:** Obsługuje żądania dotyczące statusu dronów, co pozwala na monitorowanie ich bieżącego stanu.
-- **Endpointy API:**
-  ```http
-  GET /api/drones/{drone_id}/status
-  POST /api/drones/{drone_id}/update
-  GET /api/drones
-  ```
-- **Pliki:** [Kod API](aggregator-api/)
-- **Szczegółowe Wyjaśnienie:** [Szczegółowy opis Aggregator API](./_docs/aggregator_api_details.md)
-
-#### 5. **Baza Danych (`database/`)**
-
-- **Rola:** Przechowywanie zebranych danych z dronów.
-- **Funkcje:**
-  - **Przechowywanie Danych:** Gromadzi i przechowuje dane dotyczące pozycji, stanu baterii oraz innych parametrów dronów.
-  - **Zapytania i Analizy:** Umożliwia wykonywanie zapytań oraz analizowanie danych w celu optymalizacji działania roju.
-- **Technologie:** PostgreSQL, MySQL lub inne relacyjne bazy danych.
-- **Pliki:** [Konfiguracja bazy danych](database/)
-- **Szczegółowe Wyjaśnienie:** [Dokumentacja Bazy Danych](./_docs/database.md)
-
-#### 6. **Interfejs Użytkownika (`frontend/`)**
-
-- **Rola:** Dostarczanie wizualizacji i interakcji dla użytkowników systemu.
-- **Funkcje:**
-  - **Web Dashboard:** Wizualizacja danych z roju dronów, monitorowanie ich stanu w czasie rzeczywistym.
-  - **Interakcje:** Umożliwia użytkownikom wysyłanie komend sterujących, zarządzanie dronami oraz analizowanie zgromadzonych danych.
-- **Technologie:** React, Angular, Vue.js lub inne frameworki frontendowe.
-- **Pliki:** [Kod interfejsu użytkownika](frontend/)
-- **Szczegółowe Wyjaśnienie:** [Dokumentacja Frontend](./_docs/frontend.md)
-
-### **Interakcje i Przepływ Danych**
-
-1. **Generowanie i Publikowanie Danych przez Drony:**
-   - Każdy dron generuje dane dotyczące swojej pozycji, stanu baterii oraz innych parametrów.
-   - Dane te są publikowane na brokerze MQTT pod określonym topikiem `drones/{drone_id}/position`.
-
-2. **Odbieranie i Przetwarzanie Danych przez Agregator:**
-   - Agregator subskrybuje topiki MQTT za pomocą wzorca `drones/+/position`, co pozwala na odbieranie danych od wszystkich dronów.
-   - Otrzymane dane są analizowane i agregowane w czasie rzeczywistym.
-   - Agregator może również zapisywać dane do bazy danych oraz przekazywać je dalej do Aggregator API.
-
-3. **Udostępnianie Danych poprzez Aggregator API:**
-   - Aggregator API udostępnia zebrane dane za pomocą REST API, umożliwiając dostęp do nich zewnętrznym aplikacjom oraz interfejsowi użytkownika.
-   - Użytkownicy mogą za pomocą API monitorować stan roju, zarządzać dronami oraz wykonywać inne operacje.
-
-4. **Przechowywanie Danych w Bazie Danych:**
-   - Zebrane dane są przechowywane w bazie danych, co umożliwia ich późniejszą analizę, raportowanie oraz wykorzystanie w różnych procesach biznesowych.
-
-5. **Interakcja Użytkownika z Systemem:**
-   - Użytkownik korzysta z web dashboardu do monitorowania roju dronów w czasie rzeczywistym.
-   - Dashboard umożliwia również wysyłanie komend sterujących, zarządzanie dronami oraz przeglądanie historii danych.
+Aby przejść do bardziej szczegółowej dokumentacji, kliknij [tutaj](./_docs/readme.md).
 
 ---
 
-## Komunikacja i Percepcja Dronów
+## 2. Zaawansowany Kurs Docker
 
-### **Komunikacja Dronów**
-
-Komunikacja między dronami a centralnymi komponentami systemu odbywa się za pośrednictwem protokołu MQTT. Drony działają jako klienci MQTT, publikując swoje dane na określonych topikach, a centralny broker MQTT (np. Mosquitto) zarządza dystrybucją tych danych do subskrybentów, takich jak agregator.
-
-#### **Główne Aspekty Komunikacji:**
-
-- **Niezawodność:** MQTT zapewnia niezawodną transmisję danych dzięki mechanizmowi potwierdzeń wiadomości.
-- **Efektywność:** Protokół jest lekki, co minimalizuje narzut sieciowy, idealny dla środowisk o ograniczonej przepustowości.
-- **Asynchroniczność:** Umożliwia komunikację bez konieczności jednoczesnej obecności nadawcy i odbiorcy, zwiększając elastyczność systemu.
-- **Bezpieczeństwo:** Zastosowanie TLS do szyfrowania komunikacji oraz mechanizmów uwierzytelniania zapewnia ochronę danych przed nieautoryzowanym dostępem.
-
-### **Percepcja Dronów**
-
-Percepcja dronów odnosi się do zdolności dronów do zbierania i analizowania informacji o swoim otoczeniu, co jest kluczowe dla ich autonomicznego działania.
-
-#### **Główne Elementy Percepcji:**
-
-- **Sensory:** Drony są wyposażone w różnorodne sensory, takie jak kamery, lidar, GPS, czujniki ruchu i inne, które umożliwiają zbieranie danych o otoczeniu.
-- **Przetwarzanie Danych:** Zebrane dane są przetwarzane lokalnie w dronach za pomocą wbudowanych algorytmów, co pozwala na szybką analizę i podejmowanie decyzji w czasie rzeczywistym.
-- **Integracja z Systemem Centralnym:** Dane z percepcji są również przesyłane do centralnych komponentów systemu (np. agregatora), co umożliwia bardziej zaawansowaną analizę i koordynację działań roju.
-- **Adaptacyjność:** Algorytmy percepcji pozwalają dronom na adaptację do zmieniających się warunków środowiskowych, takich jak zmiany pogody, przeszkody czy dynamika ruchu.
-
-#### **Zastosowania Percepcji:**
-
-- **Unikanie Kolizji:** Dzięki danym z sensorów drony mogą unikać kolizji zarówno z innymi dronami, jak i przeszkodami w otoczeniu.
-- **Nawigacja:** Precyzyjna nawigacja w przestrzeni dzięki integracji danych GPS i innych sensorów.
-- **Zbieranie Danych:** Percepcja umożliwia dronom zbieranie istotnych danych środowiskowych, co jest przydatne w różnych zastosowaniach, takich jak monitorowanie środowiska, inspekcje infrastruktury czy akcje ratunkowe.
+Aby lepiej zrozumieć zarządzanie kontenerami w projekcie, zalecamy zapoznanie się z [Zaawansowanym Kursem Docker](./_docs/readme.md#2-zaawansowany-kurs-docker).
 
 ---
 
-## Szczegóły Komunikacji Sieciowej i Wdrożenia
+## 3. Kubernetes – Orkiestracja Kontenerów
 
-### 1. Szczegóły Komunikacji Sieciowej
-
-W projekcie wykorzystujemy protokół MQTT do realizacji komunikacji pomiędzy dronami a agregatorem danych. Drony publikują informacje o swojej pozycji oraz stanie baterii do brokera MQTT, a agregator subskrybuje te dane, przetwarza je i udostępnia za pośrednictwem API.
-
-#### Przepływ Danych
-
-1. **Drony** publikują dane na brokerze MQTT:
-   ```json
-   Topic: drones/{drone_id}/position
-   Payload: { "x": 10, "y": 20, "battery": 95 }
-   ```
-
-2. **Agregator** subskrybuje odpowiednie topiki i odbiera dane:
-   ```plaintext
-   Subskrypcja: drones/+/position
-   ```
-
-3. **Aggregator API** umożliwia dostęp do zebranych danych:
-   ```http
-   GET /api/drones/{drone_id}/status
-   ```
-
-#### Przykład Konfiguracji Mosquitto
-
-Plik `mosquitto.conf`:
-```plaintext
-listener 1883
-allow_anonymous true
-```
-
-#### Wyjaśnienie MQTT
-
-- **Jak działa komunikacja MQTT w projekcie?**
-  MQTT to lekki protokół publikacja/subskrypcja, idealny dla środowisk IoT. Drony, działające jako klienci MQTT, publikują dane o swojej pozycji i stanie baterii na określonych tematach. Broker MQTT, taki jak Mosquitto, odpowiada za dystrybucję tych danych do subskrybentów.
-
-- **Zalety użycia MQTT:**
-  - **Niski Narzut Danych:** MQTT jest lekki, co czyni go odpowiednim dla środowisk IoT z ograniczoną przepustowością.
-  - **Asynchroniczność:** Umożliwia komunikację bez konieczności jednoczesnej obecności nadawcy i odbiorcy, co zwiększa elastyczność systemu.
-  - **Elastyczne Wzorce Subskrypcji:** Pozwalają na precyzyjną filtrację danych na podstawie struktury topików, co ułatwia zarządzanie dużymi ilościami danych.
-
-- **Topiki MQTT i Wzorce Subskrypcji:**
-  Topiki w MQTT są hierarchiczne i pozwalają na efektywne filtrowanie danych. Wzorce z użyciem symbolu `+` umożliwiają subskrypcję wielu dronów bez konieczności definiowania każdego drona osobno, np. `drones/+/position` subskrybuje pozycje wszystkich dronów.
+Kubernetes jest kluczowym elementem orkiestracji kontenerów w naszym projekcie. Szczegółowe informacje znajdziesz w sekcji [Kubernetes – Orkiestracja Kontenerów](./_docs/readme.md#3-kubernetes---orkiestracja-kontenerow).
 
 ---
 
-### 2. Wdrożenie w Kubernetes
+## 4. Docker w Chmurach Hybrydowych
 
-Wykorzystanie Kubernetes do wdrożenia dronów, agregatora oraz brokera MQTT zapewnia skalowalność, automatyzację i niezawodność całego systemu.
-
-#### Zasoby Kubernetes
-
-##### Przykład Deployment dla Dronów
-
-**Plik:** `deployments/drone-deployment.yaml`
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: drone-deployment
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: drone
-  template:
-    metadata:
-      labels:
-        app: drone
-    spec:
-      containers:
-      - name: drone
-        image: drone-simulation:latest
-        env:
-        - name: MQTT_BROKER
-          value: "mqtt-service"
-        ports:
-        - containerPort: 8080
-```
-
-##### Przykład Service dla MQTT
-
-**Plik:** `services/mqtt-service.yaml`
-```yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: mqtt-service
-spec:
-  selector:
-    app: mqtt
-  ports:
-    - protocol: TCP
-      port: 1883
-      targetPort: 1883
-  type: ClusterIP
-```
-
-#### Korzyści ze Stosowania Kubernetes
-
-- **Skalowalność:**
-  - **Auto-Scaling:** Kubernetes może automatycznie dostosowywać liczbę instancji dronów na podstawie aktualnego obciążenia i wykorzystania zasobów.
-  - **Load Balancing:** Równoważy ruch sieciowy między instancjami dronów, zapewniając optymalną wydajność i dostępność.
-
-- **Odporność na Awarie:**
-  - **Self-Healing:** Kubernetes automatycznie restartuje awaryjne pody oraz zastępuje uszkodzone instancje, co zapewnia ciągłość działania systemu.
-  - **Rolling Updates:** Umożliwia płynne aktualizacje aplikacji z minimalnym czasem przestoju poprzez stopniową wymianę starych podów na nowe wersje.
-
-- **Prostota Zarządzania:**
-  - **Deklaratywne Manifesty:** Definicje zasobów w postaci plików YAML pozwalają na łatwe zarządzanie stanem systemu oraz wersjonowanie konfiguracji.
-  - **Infrastruktura jako Kod (IaC):** Umożliwia automatyzację provisioning’u i zarządzania infrastrukturą, co zwiększa efektywność i zmniejsza ryzyko błędów ludzkich.
+Docker w połączeniu z chmurami hybrydowymi umożliwia elastyczne zarządzanie zasobami. Dowiedz się więcej w [Sekcji Docker w Chmurach Hybrydowych](./_docs/readme.md#4-docker-w-chmurach-hybrydowych).
 
 ---
 
-## CI/CD i Monitoring
+## 5. Zarządzanie Rojem Dronów w Kubernetes
 
-### Continuous Integration/Continuous Deployment (CI/CD)
-
-- **Pipeline CI/CD:** Automatyzuje cały proces budowania, testowania i wdrażania aplikacji, zapewniając szybkie i niezawodne dostarczanie nowych funkcjonalności.
-- **Narzędzia Używane:** 
-  - **[GitLab CI/CD](https://docs.gitlab.com/ee/ci/):** Integruje się z systemem kontroli wersji, automatyzując procesy pipeline.
-  - **[Jenkins](https://www.jenkins.io/doc/):** Oferuje elastyczność w automatyzacji budowania i wdrażania aplikacji.
-  - **[ArgoCD](https://argo-cd.readthedocs.io/en/stable/):** Zarządza wdrożeniami na Kubernetes zgodnie z zasadami GitOps.
-- **Etapy Pipeline:**
-  1. **Budowanie Obrazów Docker:** Automatyczne skrypty kompilują i pakują aplikacje w kontenery Docker.
-  2. **Testowanie:** Przeprowadzane są automatyczne testy, które weryfikują funkcjonalność i niezawodność kodu.
-  3. **Wdrożenie:** Udało się pomyślnie zbudować aplikacje, które są automatycznie wdrażane do klastra Kubernetes.
-
-### Monitoring
-
-- **Prometheus i Grafana:**
-  - **Prometheus:** Zbiera i przechowuje metryki z różnych komponentów systemu.
-  - **Grafana:** Wizualizuje metryki poprzez konfigurowalne dashboardy, dostarczając wglądu w wydajność i stan systemu.
-- **ELK Stack:**
-  - **Elasticsearch:** Przechowuje i indeksuje logi, umożliwiając efektywne wyszukiwanie i analizę.
-  - **Logstash:** Agreguje i przetwarza logi z różnych źródeł.
-  - **Kibana:** Wizualizuje dane logów, umożliwiając szczegółową analizę i rozwiązywanie problemów.
-- **Kluczowe Metryki Monitorowane:**
-  - **Wykorzystanie Zasobów:** Zużycie CPU i pamięci przez drony oraz komponenty systemu.
-  - **Stan Baterii:** Monitorowanie poziomów baterii dronów w czasie rzeczywistym, aby zapewnić ich gotowość operacyjną.
-  - **Dostępność Usług:** Śledzenie czasu działania i responsywności wdrożonych usług.
+Zarządzanie dużą liczbą dronów wymaga zaawansowanych technik orkiestracji. Przeczytaj więcej w [Zarządzanie Rojem Dronów w Kubernetes](./_docs/readme.md#5-zarz%C4%85dzanie-rojem-dron%C3%B3w-w-kubernetes).
 
 ---
 
-## Implementacja Logiki i Sterowania
+## 6. Opis Projektu
 
-Po skonfigurowaniu klastra Kubernetes oraz stworzeniu i skalowaniu dronów, następnym krokiem jest implementacja logiki zarządzającej oraz sterującej dronami za pomocą niskopoziomowych API.
-
-### Komponenty Zaangażowane
-
-- **Decyzje Autonomiczne:**
-  - **Wbudowana Logika:** Każdy dron (pod) posiada własną logikę, która umożliwia podejmowanie decyzji na podstawie danych wejściowych oraz warunków środowiskowych.
-  - **Algorytmy Zachowań:** Algorytmy decydują o ruchach drona, priorytetyzacji zadań oraz reakcjach na zewnętrzne komendy.
-
-- **Bezpieczeństwo Kontenerów:**
-  - **Izolacja:** Zapewnienie, że każdy kontener drona działa w izolacji, co chroni przed nieautoryzowanym dostępem i utrzymuje integralność systemu.
-  - **Polityki Bezpieczeństwa:** Implementacja ścisłych polityk bezpieczeństwa, które zabezpieczają kontenery przed podatnościami i atakami.
-
-- **Monitorowanie i Logowanie:**
-  - **Integracja z Prometheus:** Zbieranie metryk dotyczących wydajności dronów oraz stanu systemu.
-  - **Dashboardy Grafana:** Tworzenie wizualizacji metryk w czasie rzeczywistym dla efektywnego monitorowania i analizy.
-  - **Centralne Logowanie:** Agregacja logów ze wszystkich dronów i komponentów systemu w celu kompleksowego rozwiązywania problemów.
-
-- **Skalowalność:**
-  - **Polityki Auto-Scaling:** Automatyczne dostosowywanie liczby instancji dronów w odpowiedzi na bieżące metryki i zdefiniowane progi.
-  - **Optymalizacja Zasobów:** Zapewnienie optymalnego wykorzystania zasobów chmurowych poprzez skalowanie dronów w zależności od zmieniających się warunków i obciążeń.
+Opis projektu, jego idea, koncepcja oraz integracja komponentów znajduje się w [Sekcji Opis Projektu](./_docs/readme.md#6-opis-projektu).
 
 ---
 
-## Bezpieczeństwo w Klastrze Kubernetes
+## 7. Podsumowanie
 
-Bezpieczeństwo jest kluczowym aspektem zarządzania klastrem Kubernetes, zwłaszcza gdy drony działają autonomicznie i komunikują się w rozproszonym środowisku chmurowym. Wdrożenie solidnych środków bezpieczeństwa zapewnia integralność, poufność i dostępność systemu.
+Dokumentacja ta dostarcza kompleksowego przewodnika po zarządzaniu ekosystemem MQTT oraz rojem dronów w środowisku Docker i Kubernetes. Dla bardziej szczegółowych informacji, odwiedź [Dokumentację Szczegółową](./_docs/readme.md).
 
-### Kluczowe Praktyki Bezpieczeństwa
+---
 
-- **Role-Based Access Control (RBAC):**
-  - **Definicje Ról:** Określanie ról z określonymi uprawnieniami dostosowanymi do potrzeb użytkowników i aplikacji.
-  - **Ograniczenia Dostępu:** Ograniczenie dostępu do zasobów na podstawie zasady najmniejszego przywileju, co zapewnia, że użytkownicy i usługi mają dostęp tylko do niezbędnych komponentów.
+**Pliki Dokumentacji:**
 
-- **Network Policies:**
-  - **Kontrola Ruchu:** Definiowanie polityk, które kontrolują przepływ ruchu między podami, ograniczając nieautoryzowaną komunikację.
-  - **Segmentacja:** Izolowanie różnych komponentów systemu, co minimalizuje wpływ potencjalnych naruszeń bezpieczeństwa.
+- [_docs/readme.md](./_docs/readme.md)
+- [_docs/budowanie-i-zarządzanie-obrazami-dockerowymi.md](./_docs/budowanie-i-zarządzanie-obrazami-dockerowymi.md)
+- [_docs/aggregator_api_details.md](./_docs/aggregator_api_details.md)
+- [_docs/aggregator_details.md](./_docs/aggregator_details.md)
+- [_docs/broker_mqtt.md](./_docs/broker_mqtt.md)
+- [_docs/drones_component.md](./_docs/drones_component.md)
+- [_docs/idea-i-koncepcja.md](./_docs/idea-i-koncepcja.md)
+- [_docs/strategia_blue_green_canary.md](./_docs/strategia_blue_green_canary.md)
 
-- **Secrets Management:**
-  - **Bezpieczne Przechowywanie:** Przechowywanie wrażliwych informacji, takich jak klucze API, hasła i certyfikaty, w sposób bezpieczny przy użyciu Kubernetes Secrets.
-  - **Kontrola Dostępu:** Ograniczenie dostępu do sekretów tylko do tych usług i użytkowników, którzy ich potrzebują.
+---
 
-- **Pod Security Policies (PSP):**
-  - **Reguły Bezpieczeństwa:** Definiowanie i egzekwowanie reguł bezpieczeństwa dla tworzenia podów, takich jak zakaz uruchamiania kontenerów jako root czy wymóg używania nieuprzywilejowanych użytkowników.
-  - **Zgodność:** Zapewnienie, że wszystkie pody przestrzegają standardów bezpieczeństwa organizacji i najlepszych praktyk.
+[Powrót do głównej dokumentacji](./README.MD)
 
-- **Szyfrowanie:**
-  - **Danych w Transporcie:** Szyfrowanie całej komunikacji między dronami, brokerami i innymi usługami za pomocą TLS, co zapobiega podsłuchiwaniu i modyfikacjom danych.
-  - **Danych w Spoczynku:** Szyfrowanie wrażliwych danych przechowywanych w systemie, aby chronić je przed nieautoryzowanym dostępem.
+---
 
-- **Regularne Audyty i Zgodność:**
-  - **Audyty Bezpieczeństwa:** Regularne przeprowadzanie audytów bezpieczeństwa w celu identyfikacji i usunięcia luk w zabezpieczeniach.
-  - **Standardy Zgodności:** Przestrzeganie odpowiednich standardów branżowych i regulacji prawnych, co zwiększa poziom bezpieczeństwa systemu.
+## Idea i Koncepcja
+
+W centrum projektu znajduje się symulacja roju dronów działających w środowisku chmurowym i kontenerowym. Każdy dron funkcjonuje jako autonomiczny kontener, komunikujący się z pozostałymi elementami systemu za pomocą protokołu MQTT. Wspólna komunikacja oparta o model publikacja-subskrypcja (publish-subscribe) zapewnia luźne powiązanie komponentów, elastyczność i skalowalność.
+
+### **Dlaczego Roj Dronów?**
+
+- **Efektywność Operacyjna**: Roj dronów umożliwia jednoczesne wykonywanie wielu zadań, co zwiększa efektywność operacyjną w porównaniu do pojedynczych jednostek.
+- **Redundancja**: W przypadku awarii jednego drona, pozostałe jednostki mogą przejąć jego zadania, co zwiększa niezawodność systemu.
+- **Skalowalność**: Możliwość łatwego dodawania lub usuwania dronów w zależności od potrzeb operacyjnych.
+
+### **Główne założenia:**
+
+1. **Autonomiczne Kontenery/Drony** – Każdy dron jest kontenerem, generującym dane o swojej pozycji, stanie baterii i innych parametrach.
+2. **Komunikacja MQTT** – Drony publikują dane do brokera MQTT, a inne komponenty, takie jak agregator, subskrybują te informacje.
+3. **Architektura Kontenerowa w Kubernetes** – Całość wdrożenia opiera się na orkiestracji Kubernetes, zapewniając skalowalność, niezawodność, elastyczność i prostotę zarządzania.
+4. **Agregacja i Dostęp do Danych** – Agregator zbiera dane z dronów, przetwarza je i udostępnia zewnętrznemu światu poprzez REST API (aggregator-api), co umożliwia zarządzanie rojem i analizę danych.
+5. **Monitorowanie, CI/CD, Bezpieczeństwo** – Projekt uwzględnia pipeline’y CI/CD, monitoring (Prometheus, Grafana), logowanie (ELK), strategie wdrożeń (Blue-Green, Canary), bezpieczeństwo (RBAC, Network Policies, szyfrowanie).
+
+---
+
+## Poziomy Architektoniczne i Komponenty
+
+### Poziom 1: Fundamenty Komunikacji i Orkiestracji
+
+**MQTT Broker** (`server/mqtt/`)  
+- *Rola:* Centralny punkt komunikacji w stylu publish-subscribe.  
+- *Zasoby:*  
+  - `mosquitto.conf` – konfiguracja brokera MQTT (Mosquitto).  
+  - `mosquitto-deployment.yaml`, `mosquitto-service.yaml` – wdrożenie brokera do klastra Kubernetes.  
+- *Idea:* Broker MQTT umożliwia luźne powiązanie dronów (publisherów) z agregatorem (subscriberem) i innymi komponentami.
+
+**Kubernetes i Konteneryzacja**  
+- *Rola:* Orkiestracja wszystkich usług, ich skalowanie, resiliencja, load balancing.  
+- *Zasoby:* Manifesty YAML (deployment, service, statefulset) dla każdego komponentu.  
+- *Idea:* Kubernetes zapewnia infrastrukturę do uruchamiania i zarządzania wieloma dronami-kontenerami, brokerem MQTT, agregatorem i API.
+
+---
+
+### Poziom 2: Drony i Generowanie Danych
+
+**Drony** (`drones/`)  
+- *Rola:* Autonomiczne generowanie danych o stanie drona (pozycja, bateria) i publikacja ich do MQTT.  
+- *Pliki i Konfiguracja:*  
+  - `drone_logic.py` – Logika generowania danych i komunikacji z brokerem.  
+  - `Dockerfile`, `requirements.txt` – Budowa obrazu kontenera drona.  
+  - `drone-deployment.yaml`, `drone-service.yaml` – Skrypty wdrażające flotę dronów do Kubernetes.  
+- *Idea:* Każdy dron jest niezależnym podeinem w Kubernetes, który publikuje dane do brokera MQTT na topiki `drones/{drone_id}/position`. Daje to możliwość łatwego skalowania liczby dronów poprzez modyfikację `replicas`.
+
+---
+
+### Poziom 3: Agregacja Danych i API
+
+**Agregator** (`aggregator/`)  
+- *Rola:* Subskrybent wiadomości MQTT publikowanych przez drony. Zbiera dane, przetwarza je i przygotowuje do udostępnienia przez API.  
+- *Pliki i Konfiguracja:*  
+  - `aggregator.py` – Kod logiki subskrypcji i przetwarzania danych z topików `drones/+/position`.  
+  - `aggregator-deployment.yaml`, `aggregator-service.yaml` – Wdrożenie agregatora do klastrów Kubernetes.  
+  - `Dockerfile`, `requirements.txt` – Budowa obrazu.  
+- *Idea:* Agregator to centralny element logiki biznesowej – odbiera dane z roju i umożliwia ich dalszą analizę i magazynowanie.
+
+**Aggregator API** (`aggregator-api/`)  
+- *Rola:* Interfejs REST do dostępu do przetworzonych danych dronów. Umożliwia zewnętrznym systemom i użytkownikom pobieranie informacji o stanie dronów, wysyłanie komend i zarządzanie rojem.  
+- *Pliki i Konfiguracja:*  
+  - `aggregator_api.py` – Kod implementujący REST endpointy (np. `GET /api/drones/{drone_id}/status`).  
+  - `aggregator-api-deployment.yaml`, `aggregator-api-service.yaml` – Wdrożenie API do Kubernetes.  
+  - `Dockerfile`, `requirements.txt` – Obraz kontenera API.  
+- *Idea:* API tworzy warstwę integracyjną, dzięki której systemy zewnętrzne mają dostęp do aktualnego stanu roju oraz możliwość sterowania dronami.
+
+---
+
+### Poziom 4: Narzędzia Wspomagające, Monitoring, CI/CD
+
+**Monitoring i Wizualizacja**  
+- *Prometheus, Grafana:* Zbierają metryki z dronów, agregatora, API oraz brokera, wizualizując obciążenie, wykorzystanie zasobów, poziom baterii dronów.  
+- *ELK (Elasticsearch, Logstash, Kibana):* Agregują i analizują logi wszystkich komponentów systemu, wspierając diagnozę i debugowanie.
+
+**CI/CD**  
+- *Idea:* Automatyczne pipeline’y (GitLab CI, Jenkins, ArgoCD) kompilują i testują kod, budują obrazy Docker, wdrażają je do Kubernetes.  
+- *Korzyści:* Szybkie reagowanie na zmiany, zwinność w dostarczaniu nowych funkcji, minimalizacja błędów ręcznej konfiguracji.
+
+**Strategie Wdrożeń (Blue-Green, Canary)**  
+- *Idea:* Bezpieczne aktualizacje pozwalają wdrażać nowe wersje dronów lub agregatora bez przestojów. Stopniowe przełączanie ruchu (canary) lub równoległe utrzymywanie dwóch wersji (blue-green) minimalizuje ryzyko awarii.
+
+---
+
+### Poziom 5: Bezpieczeństwo i Izolacja
+
+**RBAC i Network Policies**  
+- *Idea:* Kubernetes RBAC kontroluje, którzy użytkownicy mogą czytać, pisać czy wdrażać zasoby w klastrze. Network Policies ograniczają komunikację między podami, zapewniając izolację i minimalizując wektory ataku.
+
+**Secrets Management**  
+- *Idea:* Dane wrażliwe (klucze API, hasła) przechowywane w Kubernetes Secrets, podłączane do podów w sposób bezpieczny. Szyfrowanie TLS dla komunikacji MQTT i API zwiększa poufność i integralność danych.
+
+---
+
+## Integracja i Przepływ
+
+1. **Drony** publikują dane o swojej pozycji i stanie przez MQTT:
+   - **MQTT Broker** (Mosquitto) odbiera i przechowuje te informacje tymczasowo.
+   
+2. **Agregator** subskrybuje temat `drones/+/position`:
+   - Przetwarza dane i agreguje je, tworząc jednolitą bazę informacji o stanie całego roju.
+   
+3. **Aggregator API** zapewnia interfejs REST:
+   - Użytkownicy i zewnętrzne systemy pobierają informacje (`GET /api/drones/...`) lub wysyłają komendy sterujące do dronów.
+   
+4. **Monitorowanie i Logi** śledzą cały przepływ:
+   - Prometheus i Grafana zbierają metryki.
+   - ELK pozwala na analizę logów.
+   
+5. **CI/CD i Skalowalność**:
+   - W przypadku zwiększonego obciążenia (np. potrzeby większej liczby dronów), Kubernetes umożliwia skalowanie replik.
+   - CI/CD zapewnia szybkie wprowadzenie poprawek i nowych funkcjonalności.
+   
+6. **Bezpieczeństwo** chroni cały ekosystem:
+   - RBAC ogranicza dostęp.
+   - Secrets i szyfrowane połączenia chronią wrażliwe dane.
+
+---
+
+## Rola dla Modeli AI
+
+Ten opis służy jako główny punkt odniesienia dla modeli AI, które mają operować na kodzie i logice projektu. Dzięki niemu:
+
+- **Modele językowe** mogą łatwiej zrozumieć kontekst, rolę i powiązania między elementami kodu.  
+- **Generatory kodu** opierają się na wspólnych założeniach architektonicznych, mając mapę połączeń i zrozumienie, gdzie wdrożyć nowe funkcjonalności.  
+- **Analityczne modele AI** łatwiej identyfikują punkty wejścia do optymalizacji (np. poprawa wydajności MQTT, zwiększenie bezpieczeństwa) i wiedzą, gdzie ingerować w kod lub konfigurację.
 
 ---
 
 ## Podsumowanie
 
-Projekt integruje technologie konteneryzacji, orkiestracji, komunikacji i monitoringu w celu stworzenia skalowalnej i elastycznej platformy do zarządzania rojem dronów. Przyjęte podejście opiera się na protokole MQTT, wdrożeniu na Kubernetes, automatyzacji procesów CI/CD, monitoringu metryk oraz logów, a także zastosowaniu strategii wdrożeń Blue-Green i Canary. Szczególny nacisk został położony na kwestie bezpieczeństwa, implementację logiki oraz sterowanie dronami. W rezultacie powstaje system zdolny do autonomicznego działania, efektywnego wykorzystania zasobów chmurowych oraz szybkiego reagowania na zmiany w środowisku, co zapewnia skuteczne zarządzanie rojem dronów w rozproszonym i dynamicznym środowisku.
+Przedstawiona architektura to kompleksowa platforma symulująca rozproszony system dronów zarządzanych i monitorowanych w środowisku chmurowym. Opiera się na konteneryzacji, komunikacji MQTT, orkiestracji Kubernetes, agregacji danych i udostępnianiu ich przez API. Zapewnia skalowalność, elastyczność, bezpieczeństwo, a także instrumenty do integracji z modelami AI, które mogą rozwijać i optymalizować kod na podstawie klarownej mapy funkcjonalnej i architektonicznej.
+
+### **Kluczowe Zalety Rozwiązania**
+
+- **Skalowalność i Elastyczność**: Dzięki Kubernetes możliwe jest dynamiczne skalowanie liczby dronów w zależności od potrzeb operacyjnych.
+- **Autonomia i Redundancja**: Każdy dron działa autonomicznie, co zapewnia ciągłość działania systemu nawet w przypadku awarii poszczególnych jednostek.
+- **Efektywna Komunikacja**: MQTT umożliwia szybką i niezawodną wymianę danych pomiędzy dronami a centralnymi komponentami systemu.
+- **Bezpieczeństwo**: Implementacja RBAC, Network Policies oraz szyfrowanie danych zapewnia wysoki poziom bezpieczeństwa całego ekosystemu.
+- **Monitorowanie i Analiza**: Integracja z Prometheus, Grafana oraz ELK Stack pozwala na bieżące monitorowanie stanu systemu oraz efektywne rozwiązywanie problemów.
 
 Aby dowiedzieć się więcej o konkretnych aspektach implementacji, takich jak zaawansowane zarządzanie kontenerami, budowanie obrazów Docker czy orkiestracja za pomocą Kubernetes, zapraszamy do zapoznania się z wcześniejszymi sekcjami dokumentacji.
 
@@ -446,15 +251,14 @@ Poniżej znajduje się tabela zawierająca odnośniki do istniejących dokument�
 ## Odnośniki
 
 - [Wprowadzenie do Docker i Kubernetes - Chmury Hybrydowe](./_docs/readme.md)
-- [Kubernetes – Orkiestracja Kontenerów](#kubernetes---orkiestracja-kontenerow)
-- [Docker w Chmurach Hybrydowych](#docker-w-chmurach-hybrydowych)
+- [Kubernetes – Orkiestracja Kontenerów](#3-kubernetes---orkiestracja-kontenerow)
+- [Docker w Chmurach Hybrydowych](#4-docker-w-chmurach-hybrydowych)
 - [Strategia Blue-Green i Canary](./_docs/strategia_blue_green_canary.md)
 - [Budowanie i Zarządzanie Obrazami Dockerowymi](./_docs/budowanie-i-zarządzanie-obrazami-dockerowymi.md)
-- [Ogólny Opis Projektu](./_docs/readme.md)
+- [Ogólny Opis Projektu](./_docs/readme.md#6-opis-projektu)
 - [Dokumentacja Brokera MQTT](./_docs/broker_mqtt.md)
 - [Szczegółowy opis agregatora](./_docs/aggregator_details.md)
 - [Szczegółowy opis Aggregator API](./_docs/aggregator_api_details.md)
 - [Dokumentacja Bazy Danych](./_docs/database.md)
 - [Dokumentacja Frontend](./_docs/frontend.md)
 
----
