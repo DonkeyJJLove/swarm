@@ -445,7 +445,7 @@ Poniżej znajduje się tabela zawierająca odnośniki do istniejących dokument�
 
 ## Odnośniki
 
-- [Zaawansowany Kurs Docker](#zaawansowany-kurs-docker)
+- [Wprowadzenie do Docker i Kubernetes - Chmury Hybrydowe](./_docs/readme.md)
 - [Kubernetes – Orkiestracja Kontenerów](#kubernetes---orkiestracja-kontenerow)
 - [Docker w Chmurach Hybrydowych](#docker-w-chmurach-hybrydowych)
 - [Strategia Blue-Green i Canary](./_docs/strategia_blue_green_canary.md)

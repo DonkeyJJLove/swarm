@@ -3,6 +3,7 @@ import threading
 
 AGGREGATOR_PORT = 5001  # Port dla agregatora
 
+
 def handle_message(data, addr):
     message = data.decode()
     print(f"Received from {addr}: {message}")
