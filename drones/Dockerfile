@@ -1,17 +1,14 @@
 FROM python:3.11-slim
 
 WORKDIR /app
+COPY drone_logic.py /app/drone_logic.py
 
-# Najpierw kopiujemy requirements.txt
+# Instalacja zależności, jeśli są potrzebne (odkomentuj i dostosuj)
 COPY requirements.txt /app/requirements.txt
-
-# Następnie instalujemy zależności
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Potem kopiujemy kod aplikacji
-COPY mqtt_aggregator.py /app/mqtt_aggregator.py
 
-ENV MQTT_BROKER=mqtt-broker
-ENV MQTT_PORT=1883
+ENV DRONE_NAME="default_drone"
+ENV DRONE_PORT="5000"
 
-CMD ["python", "mqtt_aggregator.py"]
+CMD ["python", "drone_logic.py"]

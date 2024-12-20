@@ -11,3 +11,6 @@ ENV MQTT_BROKER=mqtt-broker
 ENV MQTT_PORT=1883
 
 CMD ["python", "mqtt_aggregator.py"]
+
+
+
