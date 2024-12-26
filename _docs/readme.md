@@ -1,7 +1,3 @@
-Rozumiem, że chcesz uzupełnić dokumentację projektu o nowe koncepcje, takie jak **Ingress** i **Egress Gateway** w kontekście Kubernetes i Istio. Poniżej znajduje się **zaktualizowana wersja** pliku **`README.md`**, która integruje te elementy, zapewniając pełniejsze zrozumienie architektury systemu oraz jego komponentów.
-
----
-
 # Laboratory Swarm  
 **Laboratorium Bezpieczeństwa Chmurowego: Symulacja Rojów Dronów z AI i Zabezpieczeniami Istio**
 
