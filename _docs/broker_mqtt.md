@@ -1,4 +1,3 @@
-
 # Broker MQTT w Projekcie Symulacji Rojów Dronów
 
 ## 1. Wprowadzenie do MQTT
