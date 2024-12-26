@@ -6,6 +6,8 @@ spec:
   selector:
     app: aggregator
   ports:
-    - port: 5001
+    - name: aggregator-udp
+      port: 5001
       targetPort: 5001
+      protocol: UDP
   type: ClusterIP

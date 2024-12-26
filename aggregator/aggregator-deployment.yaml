@@ -13,10 +13,34 @@ spec:
         app: aggregator
     spec:
       containers:
-        - name: aggregator
-          image: localhost:5000/aggregator:latest
-          ports:
-            - containerPort: 5001
-          env:
-            - name: AGGREGATOR_PORT
-              value: "5001"
+      - name: aggregator
+        # Wskaż nazwę obrazu zarejestrowaną w Twoim rejestrze, np. localhost:5000/aggregator:latest
+        # lub myrepo/aggregator:latest
+        image: localhost:5000/aggregator:latest
+
+        # Definiujemy port, na którym aggregator nasłuchuje (UDP).
+        # Zgodnie z aggregator.py, domyślnie jest to AGGREGATOR_PORT=5001.
+        ports:
+          - containerPort: 5001
+            protocol: UDP
+
+        # Zmienne środowiskowe potrzebne aggregatorowi (opcjonalnie).
+        env:
+          - name: AGGREGATOR_PORT
+            value: "5001"
+
+        # W razie potrzeby możesz dodać zasoby i limity:
+        # resources:
+        #   requests:
+        #     cpu: "100m"
+        #     memory: "128Mi"
+        #   limits:
+        #     cpu: "500m"
+        #     memory: "256Mi"
+
+      # Jeśli potrzebujesz zainicjalizować coś przed startem kontenera (np. czekać na inny serwis),
+      # możesz dodać initContainers (jak w mqtt_bridge):
+      # initContainers:
+      #   - name: wait-for-something
+      #     image: nicolaka/netshoot
+      #     command: ["sh", "-c", "until ...; do sleep 2; done"]
