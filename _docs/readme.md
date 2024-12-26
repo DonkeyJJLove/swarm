@@ -1,4 +1,11 @@
-# MQTT (Broker & Aggregator) w Docker i Kubernetes
+Rozumiem, że chcesz uzupełnić dokumentację projektu o nowe koncepcje, takie jak **Ingress** i **Egress Gateway** w kontekście Kubernetes i Istio. Poniżej znajduje się **zaktualizowana wersja** pliku **`README.md`**, która integruje te elementy, zapewniając pełniejsze zrozumienie architektury systemu oraz jego komponentów.
+
+---
+
+# Laboratory Swarm  
+**Laboratorium Bezpieczeństwa Chmurowego: Symulacja Rojów Dronów z AI i Zabezpieczeniami Istio**
+
+## Spis Treści
 
 1. [Wprowadzenie](#1-wprowadzenie)
 2. [Zaawansowany Kurs Docker](#2-zaawansowany-kurs-docker)
@@ -15,7 +22,7 @@
         - [2.5.1 Woluminy](#251-woluminy)
         - [2.5.2 Sieci](#252-sieci)
     - [2.6 Docker w Produkcji i Best Practices](#26-docker-w-produkcji-i-best-practices)
-    - [Podsumowanie](#2-podsumowanie)
+    - [2.7 Podsumowanie](#27-podsumowanie)
 3. [Kubernetes – Orkiestracja Kontenerów](#3-kubernetes---orkiestracja-kontenerow)
     - [3.1 Wprowadzenie do Kubernetes](#31-wprowadzenie-do-kubernetes)
     - [3.2 Podstawowe Komponenty Kubernetes](#32-podstawowe-komponenty-kubernetes)
@@ -27,14 +34,14 @@
         - [3.4.2 Autoskalowanie (Horizontal Pod Autoscaler)](#342-autoskalowanie-horizontal-pod-autoscaler)
     - [3.5 Monitoring i Logowanie](#35-monitorowanie-i-logowanie)
     - [3.6 Best Practices w Kubernetes](#36-best-practices-w-kubernetes)
-    - [Podsumowanie Kubernetes](#3-podsumowanie-kubernetes)
     - [3.7 Zarządzanie Deploymentami w Kubernetes](#37-zarz%C4%85dzanie-deploymentami-w-kubernetes)
+    - [3.8 Integracja Ingress i Egress Gateway](#38-integracja-ingress-i-egress-gateway)
 4. [Docker w Chmurach Hybrydowych](#4-docker-w-chmurach-hybrydowych)
     - [4.1 Co to jest Chmura Hybrydowa?](#41-co-to-jest-chmura-hybrydowa)
     - [4.2 Zalety Docker w Chmurach Hybrydowych](#42-zalety-docker-w-chmurach-hybrydowych)
     - [4.3 Przykłady Zastosowań](#43-przyk%C5%82ady-zastosowa%C5%84)
     - [4.4 Integracja Docker z Platformami Chmurowymi](#44-integracja-docker-z-platformami-chmurowymi)
-    - [Podsumowanie Docker w Chmurach Hybrydowych](#4-podsumowanie-docker-w-chmurach-hybrydowych)
+    - [4.5 Podsumowanie Docker w Chmurach Hybrydowych](#45-podsumowanie-docker-w-chmurach-hybrydowych)
 5. [Zarządzanie Rojem Dronów w Kubernetes](#5-zarz%C4%85dzanie-rojem-dron%C3%B3w-w-kubernetes)
     - [5.1 Wprowadzenie](#51-wprowadzenie)
     - [5.2 Konfiguracja Headless Service dla Rojów Dronów](#52-konfiguracja-headless-service-dla-roj%C3%B3w-dron%C3%B3w)
@@ -430,21 +437,153 @@ kubectl get pods
 
 Pody zarządzane przez usunięty Deployment nie powinny już być widoczne na liście.
 
----
+### 3.8 Integracja Ingress i Egress Gateway
 
-### 3.8 Skalowanie Deploymentu do zera
+Integracja **Ingress** i **Egress Gateway** w Kubernetes z użyciem Istio zapewnia zaawansowane zarządzanie ruchem sieciowym, bezpieczeństwo oraz monitorowanie komunikacji między komponentami.
 
-Jeśli nie chcesz usuwać Deploymentu, ale chcesz zatrzymać Pody, możesz zmniejszyć liczbę replik do zera:
+#### 3.8.1 Ingress Gateway - Istio
 
-```bash
-kubectl scale deployment drone-swarm --replicas=0
-```
+**Ingress Gateway** jest punktem wejścia dla ruchu zewnętrznego do klastra Kubernetes. Umożliwia kontrolowanie, monitorowanie i zabezpieczanie ruchu HTTP/HTTPS kierowanego do aplikacji wewnętrznych.
 
-To polecenie zatrzyma wszystkie Pody, ale zachowa Deployment, umożliwiając późniejsze łatwe zwiększenie liczby replik:
+**Konfiguracja Ingress Gateway:**
 
 ```bash
-kubectl scale deployment drone-swarm --replicas=5
+# Instalacja Istio z profilem ingress
+istioctl install --set profile=default -y
+
+# Włączenie automatycznego wstrzykiwania sidecarów w namespace
+kubectl label namespace default istio-injection=enabled
 ```
+
+**Przykładowa definicja Ingress Gateway:**
+
+```yaml
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: aggregator-gateway
+spec:
+  selector:
+    istio: ingressgateway # używa domyślnego Ingress Gateway
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "*"
+  - port:
+      number: 443
+      name: https
+      protocol: HTTPS
+    tls:
+      mode: SIMPLE
+      credentialName: aggregator-credential
+      privateKey: sds
+      serverCertificate: sds
+    hosts:
+    - "*"
+```
+
+**Definicja VirtualService dla Aggregator API:**
+
+```yaml
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: aggregator-api
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - aggregator-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /api/
+    route:
+    - destination:
+        host: aggregator-api
+        port:
+          number: 80
+```
+
+#### 3.8.2 Egress Gateway - Istio
+
+**Egress Gateway** kontroluje ruch wychodzący z klastra Kubernetes do zewnętrznych API i usług. Zapewnia dodatkowe warstwy bezpieczeństwa, takie jak mTLS i kontrola dostępu.
+
+**Przykładowa definicja Egress Gateway:**
+
+```yaml
+apiVersion: networking.istio.io/v1alpha3
+kind: ServiceEntry
+metadata:
+  name: external-apis
+spec:
+  hosts:
+  - "api.weather.com"
+  - "api.maps.com"
+  ports:
+  - number: 443
+    name: https
+    protocol: HTTPS
+  resolution: DNS
+```
+
+**Definicja Egress Gateway:**
+
+```yaml
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: egress-gateway
+spec:
+  selector:
+    istio: egressgateway # używa domyślnego Egress Gateway
+  servers:
+  - port:
+      number: 443
+      name: https
+      protocol: HTTPS
+    hosts:
+    - "api.weather.com"
+    - "api.maps.com"
+    tls:
+      mode: ISTIO_MUTUAL
+```
+
+**Definicja VirtualService dla Egress Gateway:**
+
+```yaml
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: external-apis
+spec:
+  hosts:
+  - "api.weather.com"
+  - "api.maps.com"
+  gateways:
+  - egress-gateway
+  tls:
+  - match:
+    - port: 443
+      sni_hosts:
+      - "api.weather.com"
+      - "api.maps.com"
+    route:
+    - destination:
+        host: egress-gateway.istio-system.svc.cluster.local
+        port:
+          number: 443
+```
+
+#### 3.8.3 Korzyści z Ingress i Egress Gateway
+
+- **Bezpieczeństwo**: Zapewnienie mTLS dla ruchu przychodzącego i wychodzącego.
+- **Kontrola Dostępu**: Definiowanie polityk autoryzacji dla różnych typów ruchu.
+- **Monitorowanie i Logowanie**: Śledzenie i analizowanie ruchu sieciowego za pomocą narzędzi Istio.
+- **Łatwość Zarządzania**: Centralizacja punktów wejścia i wyjścia, co ułatwia zarządzanie konfiguracją i politykami.
 
 ---
 
@@ -1172,7 +1311,6 @@ W centrum projektu znajduje się symulacja roju dronów działających w środow
 ## 7. Rola dla Modeli AI
 
 Ten opis służy jako główny punkt odniesienia dla modeli AI, które mają operować na kodzie i logice projektu. Dzięki niemu:
-
 - **Modele językowe** mogą łatwiej zrozumieć kontekst, rolę i powiązania między elementami kodu.
 - **Generatory kodu** opierają się na wspólnych założeniach architektonicznych, mając mapę połączeń i zrozumienie, gdzie wdrożyć nowe funkcjonalności.
 - **Analityczne modele AI** łatwiej identyfikują punkty wejścia do optymalizacji (np. poprawa wydajności MQTT, zwiększenie bezpieczeństwa) i wiedzą, gdzie ingerować w kod lub konfigurację.
@@ -1209,3 +1347,33 @@ Poniżej znajduje się tabela zawierająca odnośniki do istniejących dokument�
 - [Dokumentacja Frontend](./frontend.md)
 
 ---
+
+**Nota dla Użytkownika**:  
+Dokumentacja jest żywym dokumentem i będzie aktualizowana wraz z rozwojem projektu. Zachęcamy do regularnego przeglądania najnowszych zmian i dodawania własnych uwag poprzez **Issues** lub **Pull Requests** w repozytorium.
+
+---
+
+## Dodatkowe Wyjaśnienia
+
+### Poprawki Architektury
+
+- **Egress Gateway - Istio** nie jest bezpośrednio związany ze sterowaniem dronów. Jego głównym celem jest kontrolowanie i zabezpieczanie ruchu wychodzącego z klastra do zewnętrznych API, takich jak serwisy mapowe czy pogodowe.
+- **Drony** są komponentami wewnętrznymi systemu, publikującymi dane do **Broker MQTT**. Wszystkie operacje związane z dronami odbywają się wewnątrz klastra Kubernetes, bez potrzeby bezpośredniego dostępu przez **Egress Gateway**.
+
+### Bezpieczeństwo Komunikacji
+
+- **Ingress Gateway - Istio** umożliwia bezpieczny dostęp do **Aggregator API** z zewnątrz, zapewniając szyfrowanie i autoryzację.
+- **mTLS** między usługami wewnątrz klastra zapewnia poufność i integralność danych oraz wzajemne uwierzytelnianie usług.
+
+### Machine Learning (AI)
+
+- **System AI (ML)** analizuje dane telemetryczne z dronów, trenuje modele do optymalizacji ruchu i wykrywania anomalii.
+- **Model Trener ML** może korzystać z danych historycznych lub danych w czasie rzeczywistym, umożliwiając adaptacyjne zarządzanie rojem dronów.
+- **Symulacje i Eksperymenty** pozwalają na testowanie modeli w kontrolowanym środowisku przed ich wdrożeniem.
+
+### DevSecOps
+
+- **Pipeline CI/CD** integruje budowanie, testowanie, skanowanie i wdrażanie komponentów, zapewniając automatyzację i bezpieczeństwo na każdym etapie.
+- **GitOps** z narzędziami takimi jak **ArgoCD** czy **Flux** umożliwia synchronizację stanu klastra z repozytorium Git, co ułatwia zarządzanie i audyt zmian.
+
+Mam nadzieję, że ta zaktualizowana wersja dokumentacji jest bardziej kompletna i odpowiada na Twoje potrzeby. Jeśli masz dalsze uwagi lub potrzebujesz dodatkowych zmian, proszę daj znać!
