@@ -41,10 +41,6 @@ Celem jest stworzenie **modularnej, skalowalnej i bezpiecznej platformy**, któr
 
 ---
 
-Rozumiem, że chcesz bardziej szczegółowo opisać **Architekturę Systemu**, koncentrując się na przejrzystych i metodycznych diagramach ASCII oraz ich opisach. Poniżej znajduje się **rozbudowana** sekcja **Architektura Systemu** dla projektu **"Laboratory Swarm"**, z uwzględnieniem Twoich uwag.
-
----
-
 ## 2. Architektura Systemu
 
 ### Wysokopoziomowy Diagram Architektury
