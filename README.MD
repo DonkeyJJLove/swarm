@@ -1,344 +1,386 @@
-# Symulacja Rojów Dronów w Architekturze Kontenerowej z Bezpiecznym Dostępem (Ingress/Egress) przy użyciu Istio
+# Laboratorium Bezpieczeństwa Chmurowego: Symulacja Rojów Dronów z AI i Zabezpieczeniami Istio
 
 ## Spis Treści
 
-1. [Wprowadzenie](#1-wprowadzenie)  
-2. [Architektura Systemu](#2-architektura-systemu)
-   - [Diagram Architektury](#diagram-architektury)
-   - [Opis Komponentów](#opis-komponentów)  
-     - [Drony (`drones/`)](#drony-drones)
-     - [Broker MQTT (`server/mqtt/`)](#broker-mqtt-servermqtt)
-     - [Agregator (`aggregator/`)](#agregator-aggregator)
-     - [Aggregator API (`aggregator-api/`)](#aggregator-api-aggregator-api)
-3. [Komunikacja Sieciowa: MQTT i Aggregator API](#3-komunikacja-sieciowa-mqtt-i-aggregator-api)
-4. [Wdrożenie w Kubernetes](#4-wdrożenie-w-kubernetes)
-   - [Przykłady Deployment i Service](#przykłady-deployment-i-service)
-   - [Skalowalność i Odporność na Awarie](#skalowalność-i-odporność-na-awarie)
-5. [Integracja z Istio: Ingress i Egress Gateway](#5-integracja-z-istio-ingress-i-egress-gateway)
-   - [Wprowadzenie do Ingress i Egress Gateway](#wprowadzenie-do-ingress-i-egress-gateway)
-   - [Konfiguracja Ingress Gateway](#konfiguracja-ingress-gateway)
-   - [Konfiguracja Egress Gateway](#konfiguracja-egress-gateway)
-   - [mTLS, JWT, Rate Limiting, Blokowanie IP](#mtls-jwt-rate-limiting-blokowanie-ip)
-   - [Monitorowanie i Audyt Ruchu](#monitorowanie-i-audyt-ruchu)
-6. [CI/CD, Monitoring i Logowanie](#6-cicd-monitoring-i-logowanie)
-7. [Strategie Wdrożeń (Blue-Green, Canary)](#7-strategie-wdrożeń-blue-green-canary)
-8. [Informacje z Istniejących Plików i Rozszerzenia](#8-informacje-z-istniejących-plików-i-rozszerzenia)
-9. [Implementacja Logiki, Sterowania i Bezpieczeństwo w Klastrze](#9-implementacja-logiki-sterowania-i-bezpieczeństwo-w-klastrze)
+1. [Cele, Kontekst i Zakres Projektu](#1-cele-kontekst-i-zakres-projektu)  
+2. [Architektura – Przegląd i Diagram](#2-architektura--przegląd-i-diagram)  
+3. [Opis Szczegółowy Komponentów](#3-opis-szczegółowy-komponentów)  
+   - [Drony (IoT) – `drones/`](#drony-iot--drones)  
+   - [Broker MQTT i `mqtt-aggregator/`](#broker-mqtt-i-mqtt-aggregator)  
+   - [Agregator – `aggregator/`](#agregator--aggregator)  
+   - [Aggregator API – `aggregator-api/`](#aggregator-api--aggregator-api)  
+   - [System AI (ML)](#system-ai-ml)  
+   - [Warstwa Skryptów i CI/CD – `scripts/`, `server/`](#warstwa-skryptów-i-cicd--scripts-server)  
+4. [Bezpieczeństwo w Kubernetes i Istio](#4-bezpieczeństwo-w-kubernetes-i-istio)  
+   - [Warstwa Sieciowa: mTLS, Autoryzacja, Rate Limiting](#warstwa-sieciowa-mtls-autoryzacja-rate-limiting)
+   - [Ingress i Egress Gateway – Kontrola Ruchu](#ingress-i-egress-gateway--kontrola-ruchu)
+   - [Zarządzanie Politykami (RBAC, NetworkPolicy, AuthorizationPolicy)](#zarządzanie-politykami-rbac-networkpolicy-authorizationpolicy)  
+   - [Mechanizmy Monitoringu (Prometheus, Grafana, Kiali, ELK)](#mechanizmy-monitoringu-prometheus-grafana-kiali-elk)  
+5. [Zabezpieczenia Chmurowe i IoT w Projekcie](#5-zabezpieczenia-chmurowe-i-iot-w-projekcie)  
+   - [MQTT Security (TLS, Hasła, Autoryzacja)](#mqtt-security-tls-hasła-autoryzacja)  
+   - [Bezpieczeństwo Kontenerów i Pod Security](#bezpieczeństwo-kontenerów-i-pod-security)  
+   - [Hardening Obrazów i Infrastructure as Code](#hardening-obrazów-i-infrastructure-as-code)  
+   - [Zaawansowane Mechanizmy DevSecOps](#zaawansowane-mechanizmy-devsecops)  
+6. [Bezpieczeństwo Algorytmów AI](#6-bezpieczeństwo-algorytmów-ai)  
+   - [Ataki na Modele ML (Adversarial, Data Poisoning)](#ataki-na-modele-ml-adversarial-data-poisoning)  
+   - [Mechanizmy Uwierzytelniania i Autoryzacji w Systemach AI](#mechanizmy-uwierzytelniania-i-autoryzacji-w-systemach-ai)  
+   - [Model Governance i Ciągła Walidacja](#model-governance-i-ciągła-walidacja)  
+7. [Scenariusze Eksperymentalne i Testy Bezpieczeństwa](#7-scenariusze-eksperymentalne-i-testy-bezpieczeństwa)  
+   - [Testy Penetracyjne, Fuzzing, Chaos Engineering](#testy-penetracyjne-fuzzing-chaos-engineering)  
+   - [Symulacja Awarii i Skalowanie W Górę / W Dół](#symulacja-awarii-i-skalowanie-w-górę--w-dół)  
+   - [Ataki na MQTT / Drony / API](#ataki-na-mqtt--drony--api)  
+   - [Przykładowe Ćwiczenia Edukacyjne](#przykładowe-ćwiczenia-edukacyjne)  
+8. [Perspektywa CI/CD i Pipeline Bezpieczeństwa](#8-perspektywa-cicd-i-pipeline-bezpieczeństwa)  
+9. [Rozbudowa, Możliwe Usprawnienia i Dalsze Kierunki](#9-rozbudowa-możliwe-usprawnienia-i-dalsze-kierunki)  
 10. [Podsumowanie](#10-podsumowanie)
 
 ---
 
-## 1. Wprowadzenie
+## 1. Cele, Kontekst i Zakres Projektu
 
-Projekt ma na celu symulację i zarządzanie rojem dronów działających w środowisku chmurowym. Wykorzystuje on konteneryzację (Docker), orkiestrację (Kubernetes) oraz komunikację opartą na protokole MQTT. Każdy dron działa jako niezależny kontener i autonomicznie generuje dane o swojej pozycji oraz stanie baterii. Dane te są publikowane do brokera MQTT, a następnie zbierane i przetwarzane przez komponent **Agregator**, który udostępnia je poprzez **Aggregator API (REST)**.
-
-Dzięki integracji z Istio Service Mesh oraz użyciu Ingress i Egress Gateway, możliwe jest zapewnienie zaawansowanych mechanizmów bezpieczeństwa (mTLS, JWT, blokowanie IP), obserwowalności (monitoring, logging) i kontroli ruchu sieciowego (rate limiting, polityki dostępu).
-
-**Cele projektu:**
-- Symulacja koordynacji roju dronów.
-- Modularność i skalowalność dzięki Kubernetes.
-- Bezpieczna i kontrolowana komunikacja (MQTT + Istio).
-- Agregacja i analiza danych w czasie rzeczywistym (Aggregator API).
-- CI/CD, monitoring, logging oraz strategie wdrożeń (Blue-Green, Canary).
-
----
-
-## 2. Architektura Systemu
-
-### Diagram Architektury
-
-```
-[Internet]
-     |
- [Ingress Gateway - Istio] --> [Aggregator API]
-                |                      
-                v                      
-           [Aggregator] <--- subskrypcja MQTT --- [Broker MQTT]
-                                     ^
-                                     |
-                                [Drony - Pody]
-                                     |
-                                     v
-                             [Egress Gateway - Istio]
-                                     |
-                                  [External APIs]
-```
-
-### Opis Komponentów
-
-#### Drony (`drones/`)
-
-- **Rola**: Każdy dron to kontener symulujący urządzenie IoT.
-- **Funkcjonalność**:
-  - Publikuje dane o położeniu i stanie baterii na brokerze MQTT.
-  - Temat (topic) MQTT: `drones/{drone_id}/position`.
-- **Skalowalność**: Zmiana liczby replik w Deployment Kubernetes.
-- **Kod i Konfiguracja**: Katalog `drones/`.
-
-#### Broker MQTT (`server/mqtt/`)
-
-- **Rola**: Centralny punkt komunikacji (publish/subscribe).
-- **Funkcjonalność**:
-  - Odbiera dane od dronów.
-  - Rozsyła dane do subskrybentów (np. agregatora).
-- **Technologia**: Mosquitto.
-- **Konfiguracja**: Katalog `server/mqtt/`.
-
-Przykładowa konfiguracja `mosquitto.conf`:
-```plaintext
-listener 1883
-allow_anonymous true
-```
-
-#### Agregator (`aggregator/`)
-
-- **Rola**: Subskrybuje dane z MQTT i je przetwarza.
-- **Funkcjonalność**:
-  - Subskrypcja `drones/+/position`.
-  - Agregacja i analiza danych, ewentualne zapisy do bazy.
-- **Kod i Konfiguracja**: Katalog `aggregator/`.
-- **Dokumentacja**: [aggregator_details.md](./_docs/aggregator_details.md).
-
-#### Aggregator API (`aggregator-api/`)
-
-- **Rola**: Udostępnia dane z agregatora poprzez REST API.
-- **Funkcjonalność**:
-  - `GET /api/drones` – lista dronów i ich status.
-  - `GET /api/drones/{drone_id}/status` – dane wybranego drona.
-  - `POST /api/drones/{drone_id}/update` – wysyłanie komend.
-- **Kod i Konfiguracja**: Katalog `aggregator-api/`.
-- **Dokumentacja**: [aggregator_api_details.md](./_docs/aggregator_api_details.md).
+1. **Laboratorium Chmurowe**: Projekt stanowi przestrzeń do praktycznego testowania i wdrażania mechanizmów bezpieczeństwa, sieci, monitoringu w kontekście **Cloud Native** (Kubernetes + Istio + kontenery Docker).
+2. **Symulacja Rojów Dronów**:
+   - Każdy dron publikuje dane (pozycja, stan baterii, parametry lotu), co pozwala generować ruch i zdarzenia IoT w środowisku.
+   - Rój dronów (dziesiątki lub setki instancji) pozwala testować skalę, przepustowość i odporność na awarie.
+3. **Komponent AI**:
+   - Umożliwia tworzenie autonomicznych algorytmów sterowania rojem, zarządzania energią, planowania tras oraz **implementację zabezpieczeń** w warstwie Machine Learning.
+   - Badania nad atakami typu adversarial i obrony w systemach AI.
+4. **Bezpieczeństwo na wszystkich poziomach**:
+   - Zabezpieczenia brokerów MQTT (autoryzacja, TLS).
+   - Zabezpieczenia API (JWT, rate limiting).
+   - Ochrona danych w ruchu (mTLS w Service Mesh).
+   - Bezpieczeństwo kontenerów (skanowanie obrazów, minimalne systemy bazowe, Pod Security).
+   - Testy penetracyjne i chaos engineering.
+5. **Cel Edukacyjny i Badawczy**:
+   - Projekt jest eksperymentalny – ma służyć inżynierom, studentom, badaczom w zakresie **DevSecOps**, IoT, ML i chmury.
 
 ---
 
-## 3. Komunikacja Sieciowa: MQTT i Aggregator API
+## 2. Architektura – Przegląd i Diagram
 
-1. **Drony** publikują dane na brokerze MQTT:
-   ```json
-   Topic: drones/{drone_id}/position
-   Payload: {"x":10,"y":20,"battery":95}
-   ```
-2. **Agregator** subskrybuje `drones/+/position` i odbiera dane od wszystkich dronów jednocześnie.
-3. **Aggregator API** udostępnia dane przez REST:
-   ```http
-   GET /api/drones/{drone_id}/status
-   ```
+```
+                       [Internet]
+                            |
+                [Ingress Gateway - Istio]  <--->  [Policy / RBAC / mTLS]
+                            |
+                            v
+   +---------------------------------------------------+
+   |               [Aggregator API]                    |
+   |         (udostępnianie danych i zarządzanie)      |
+   +---------------------------------------------------+
+                            |
+                            v
+                 [Aggregator] <---- subskrypcja MQTT ----- [mqtt_aggregator.py]
+                            ^                                   ^
+                            |                                   |
+                            +---------- [Broker MQTT] <---------+
 
-**Zalety MQTT**:
-- Lekkość i asynchroniczność.
-- Łatwość skalowania na wiele urządzeń IoT.
+    [System AI] <----- integracja z Aggregator i/lub Broker ----> (analiza ML, trenowanie, symulacje)
+         |
+         |--> [Model Trener ML], [Analiza Danych], [Symulacje i Eksperymenty], [Interfejs Zarządzania]
+         |
+         +--> Może wykorzystywać zewnętrzne API (przez Egress Gateway)
 
-**Integrator (Aggregator API)**:
-- Zapewnia dostęp do danych dla użytkowników końcowych, systemów analitycznych lub interfejsów sterujących.
-
----
-
-## 4. Wdrożenie w Kubernetes
-
-Wykorzystanie Kubernetes pozwala na łatwe zarządzanie kontenerami, skalowanie aplikacji i zapewnienie wysokiej dostępności.
-
-### Przykłady Deployment i Service
-
-**Deployment dronów:**
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: drone-deployment
-spec:
-  replicas: 5
-  selector:
-    matchLabels:
-      app: drone
-  template:
-    metadata:
-      labels:
-        app: drone
-    spec:
-      containers:
-      - name: drone
-        image: drone-simulation:latest
-        env:
-        - name: MQTT_BROKER
-          value: "mqtt-service"
+                             ^
+                             |
+                        [Drony - Pody (IoT)]
+                             |
+                             v
+                   (publikacja w MQTT: drones/{id}/position)
 ```
 
-**Service dla MQTT:**
-```yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: mqtt-service
-spec:
-  selector:
-    app: mqtt
-  ports:
-    - protocol: TCP
-      port: 1883
-      targetPort: 1883
-```
+**Wybrane elementy**:
 
-### Skalowalność i Odporność na Awarie
-
-- **Skalowalność:** Zwiększanie liczby replik dronów lub agregatora w zależności od obciążenia.
-- **Odporność:** Kubernetes automatycznie restartuje pody i zapewnia ciągłość działania.
+- **Drony**: generują dane – *topic* `drones/{drone_id}/position`, MQTT.
+- **Broker MQTT** (Mosquitto) i **mqtt_aggregator.py**: łącznik, który może wykonywać dodatkowe transformacje lub logowania.
+- **Aggregator** i **Aggregator API**: Główna warstwa logiczna – gromadzenie informacji, udostępnianie przez REST.
+- **System AI**: Algorytmy uczenia maszynowego do sterowania rojem i/lub wykrywania anomalii.
+- **Istio**: Zapewnia spójne bezpieczeństwo (mTLS, polityki) i kontrolę ruchu.
+- **Kubernetes**: Orkiestracja kontenerów i skalowanie.
 
 ---
 
-## 5. Integracja z Istio: Ingress i Egress Gateway
+## 3. Opis Szczegółowy Komponentów
 
-Istio Service Mesh zapewnia rozbudowane funkcje bezpieczeństwa, kontroli i obserwowalności ruchu sieciowego.
+### Drony (IoT) – `drones/`
 
-### Wprowadzenie do Ingress i Egress Gateway
+1. **Implementacja**: Mogą być napisane w Pythonie, Node.js czy Go – każda instancja „udaje” drona, co kilka sekund publikuje dane telemetryczne.
+2. **Parametry**:
+   - Pozycja `(x, y)` lub GPS `(lat, lon)`.
+   - Poziom baterii, prędkość, status (active, charging).
+3. **Konfiguracja w K8s**:
+   - Deployment z replikami (np. `replicas: 50`) pozwala wytworzyć 50 dronów.
+   - **Zmienne środowiskowe**: `MQTT_HOST`, `MQTT_TOPIC_BASE`, ewentualnie klucze TLS.
+4. **Aspekty Bezpieczeństwa**:
+   - Drony (pod) powinny działać w restricted policy (non-root user, read-only filesystem).
+   - Komunikacja z brokerem przez TLS (port 8883) lub mTLS (bardziej zaawansowane).
 
-- **Ingress Gateway:** Kontroluje ruch przychodzący do klastra, pozwala na wdrożenie mTLS, autoryzacji JWT.
-- **Egress Gateway:** Kontroluje ruch wychodzący z klastra, zapewniając kontrolę nad połączeniami do zewnętrznych usług.
+### Broker MQTT i `mqtt-aggregator/`
 
-### Konfiguracja Ingress Gateway
+1. **Broker MQTT (Mosquitto)**:
+   - Uruchamiany z pliku `mosquitto-deployment.yaml`, z usługą `mosquitto-service.yaml`.
+   - Konfiguracja w `mosquitto.conf` (ustawienia TLS, `allow_anonymous false`, hasło, ACL).
+   - Odpowiedzialny za przepływ publish/subscribe między dronami a subskrybentami (Aggregator, System AI).
+2. **`mqtt_aggregator.py`**:
+   - Skrypt Python subskrybujący topiki (np. `drones/+/position`), wstępnie przetwarzający dane, logujący je lub przekierowujący do innych usług.
+   - Często odpalany w osobnym kontenerze, aby rozdzielić logikę „odbioru/konwersji danych” od samego brokera.
+3. **Aspekty Bezpieczeństwa**:
+   - Plik `requirements.txt` – zależności muszą być skanowane (SAST/DAST).
+   - Dockerfile – powinien być zbudowany na minimalnym obrazie, unikamy pakietów zbędnych.
+   - Broker konfigurowany tak, by nie przyjmował anonimowych połączeń i miał ograniczenia QoS lub liczby połączeń (rate limiting).
 
-Przykładowy Gateway:
-```yaml
-apiVersion: networking.istio.io/v1alpha3
-kind: Gateway
-metadata:
-  name: aggregator-ingress-gateway
-  namespace: istio-system
-spec:
-  selector:
-    istio: ingressgateway
-  servers:
-  - port:
-      number: 443
-      name: https
-      protocol: HTTPS
-    tls:
-      mode: SIMPLE
-      credentialName: aggregator-ingress-credential
-    hosts:
-    - "aggregator.example.com"
-```
+### Agregator – `aggregator/`
 
-VirtualService dla Aggregator API:
-```yaml
-apiVersion: networking.istio.io/v1alpha3
-kind: VirtualService
-metadata:
-  name: aggregator-virtualservice
-  namespace: default
-spec:
-  hosts:
-  - "aggregator.example.com"
-  gateways:
-  - istio-system/aggregator-ingress-gateway
-  http:
-  - match:
-    - uri:
-        prefix: /api
-    route:
-    - destination:
-        host: aggregator-api-service.default.svc.cluster.local
-        port:
-          number: 80
-```
+1. **Subskrypcja**:
+   - Odbiera dane z MQTT (przez python `paho-mqtt` lub `mqtt_aggregator.py`).
+   - Przetwarza, np. łączy z danymi pogodowymi, filtruje drony offline.
+2. **Analiza**:
+   - Może analizować w czasie rzeczywistym (np. wykrycie, czy dany dron nie spada poniżej pewnej wysokości).
+3. **Zapis / Udostępnianie**:
+   - Wewnętrzna baza (np. Redis lub PostgreSQL) lub trzymanie w pamięci.
+   - Udostępnianie do **Aggregator API** (REST) albo przekazanie do **Systemu AI**.
+4. **Bezpieczeństwo**:
+   - Walidacja formatów JSON (zapobieganie wstrzykiwaniom).
+   - Odpowiednie polityki w K8s, by tylko aggregator i AI mogły się łączyć z brokerem MQTT.
+   - Możliwość wprowadzenia szyfrowania danych at rest, np. w bazie.
 
-### Konfiguracja Egress Gateway
+### Aggregator API – `aggregator-api/`
 
-Przykładowy ServiceEntry:
-```yaml
-apiVersion: networking.istio.io/v1alpha3
-kind: ServiceEntry
-metadata:
-  name: external-api-service
-  namespace: default
-spec:
-  hosts:
-  - "api.external-payments.com"
-  ports:
-  - number: 443
-    name: https
-    protocol: TLS
-  resolution: DNS
-  location: MESH_EXTERNAL
-```
+1. **Endopointy** (przykłady):
+   - `GET /api/drones` – lista dronów, z podstawowymi informacjami.
+   - `GET /api/drones/{id}/status` – pełne dane danego drona.
+   - `POST /api/drones/{id}/update` – wysyłanie komend, np. zmiana trasy.
+2. **Technologie**:
+   - Zwykle Python/Flask lub Node.js/Express.
+   - Uruchamiane przez `aggregator-api-deployment.yaml`, skalowane w K8s.
+3. **Zabezpieczenia**:
+   - Autoryzacja JWT (lub OAuth2) – jedynie uprawnione podmioty mogą sterować dronami.
+   - Rate limiting i firewall (Istio Envoy) – ograniczanie ilości żądań i blokowanie IP.
+   - Logowanie żądań (dla audytu) – **Kibana**/**Grafana**/**Kiali**.
 
-Dalsza konfiguracja VirtualService i DestinationRule umożliwia kontrolę i uwierzytelnianie ruchu wychodzącego.
+### System AI (ML)
 
-### mTLS, JWT, Rate Limiting, Blokowanie IP
+1. **Cel**:
+   - Trenowanie modeli sterujących ruchem roju (oszczędzanie energii, unikanie kolizji).
+   - Analiza anomalii, wykrywanie dronów z „fałszywymi danymi” (może posłużyć do testów bezpieczeństwa).
+2. **Moduły**:
+   - **Model Trener ML**: Batch lub online training (np. przy dużym zbiorze historycznym).
+   - **Analiza Danych**: Może subskrybować dane w czasie rzeczywistym i wykrywać anomalie.
+   - **Symulacje i Eksperymenty**: Zanim nowy model wejdzie na produkcję, testowane są zachowania roju w środowisku wirtualnym.
+   - **Interfejs Zarządzania**: Możliwość wizualizacji, wprowadzania scenariuszy testowych.
+3. **Bezpieczeństwo AI**:
+   - Ochrona przed atakami adversarial (fake sensory, sabotaż danych).
+   - Polityki dostępu do modeli – nieautoryzowany dostęp mógłby np. wstrzyknąć złośliwe wagi modelu i przejąć kontrolę nad dronami.
+   - Podpisywanie modeli i weryfikacja integralności (tzw. model governance).
 
-- **mTLS:** Wzajemne uwierzytelnianie między usługami w klastrze.
-- **JWT:** Autoryzacja użytkowników do Aggregator API.
-- **Rate Limiting:** Ograniczanie liczby żądań, ochrona przed DDoS.
-- **Blokowanie IP:** Odmawianie dostępu ruchowi z podejrzanych źródeł.
+### Warstwa Skryptów i CI/CD – `scripts/`, `server/`
 
-### Monitorowanie i Audyt Ruchu
-
-- Integracja z Prometheus, Grafana, Kiali do monitorowania ruchu, metryk, logów.
-- Audyt i analiza zdarzeń bezpieczeństwa, wykrywanie anomalii.
+1. **`scripts/`**:
+   - Mogą zawierać skrypty do automatycznego wdrażania, budowania obrazów, migracji bazy itd.
+   - Narzędzia do testów bezpieczeństwa (np. skrypty do fuzzing aggregator-api).
+2. **`server/`**:
+   - Czasem służy jako centralny serwis konfiguracyjny lub integrujący (ciężko stwierdzić bez zawartości).
+   - Może zawierać pipeline’y, klucze do systemu CI/CD, pliki Jenkinsfile, itp.
 
 ---
 
-## 6. CI/CD, Monitoring i Logowanie
+## 4. Bezpieczeństwo w Kubernetes i Istio
 
-- **CI/CD:**  
-  Automatyzacja budowy obrazów Docker, testów, wdrożeń do Kubernetes.  
-  Narzędzia: GitLab CI/CD, Jenkins, ArgoCD.
+### Warstwa Sieciowa: mTLS, Autoryzacja, Rate Limiting
 
-- **Monitoring (Prometheus/Grafana):**  
-  Zbiór metryk i wizualizacja w Grafanie. Monitorowanie zużycia zasobów, stanu dronów, opóźnień.
+1. **mTLS**:
+   - Każda usługa (aggregator, aggregator-api, AI) komunikuje się z innymi poprzez Envoy sidecar.
+   - Certyfikaty zarządzane przez Istio Citadel.
+   - Zapewnienie poufności i wzajemnego uwierzytelniania.
+2. **Autoryzacja**:
+   - **Istio AuthorizationPolicy**: definiowanie, które usługi mogą wywoływać które endpointy.
+   - Możliwość ograniczenia dronów tylko do publikowania do broker MQTT, a aggregator do subskrypcji.
+3. **Rate Limiting** (Envoy):
+   - Ochrona przed atakami DDoS, ewentualne limitowanie liczby żądań do aggregator-api.
 
-- **Logowanie (ELK Stack):**  
-  Elasticsearch, Logstash, Kibana do centralnej analizy logów dronów, agregatora, API i gatewayów Istio.
+### Ingress i Egress Gateway – Kontrola Ruchu
 
----
+1. **Ingress Gateway**:
+   - Publikuje aggregator-api (i ewentualnie AI) na zewnątrz.
+   - Konfiguracja TLS – hosty, sni.
+   - Można wprowadzić JWT authentication, IP whitelisting, WAF (np. ModSecurity) w Envoy.
+2. **Egress Gateway**:
+   - Kontroluje ruch do zewnętrznych usług (np. chmurowe API do uczenia modeli, serwisy map, pogodowe).
+   - ServiceEntry w Istio, aby odblokować/właczyć określone domeny.
 
-## 7. Strategie Wdrożeń (Blue-Green, Canary)
+### Zarządzanie Politykami (RBAC, NetworkPolicy, AuthorizationPolicy)
 
-- **Blue-Green:**  
-  Dwie wersje działają równolegle, szybkie przełączenie ruchu na nową wersję.
+1. **RBAC w K8s**:
+   - Przydział ról i uprawnień do developerów / testerów – np. operator ML nie może modyfikować broker MQTT.
+   - Rozdzielenie namespace (drony w jednym, aggregator w drugim, AI w trzecim).
+2. **NetworkPolicy**:
+   - Ograniczenie komunikacji na poziomie IP/port – np. aggregator może łączyć się z broker MQTT, ale drony nie mogą kontaktować się z aggregator-api bezpośrednio.
+3. **Istio AuthorizationPolicy**:
+   - Szczegółowa kontrola, które usługi mają dostęp do endpointów aggregator-api (np. `api/drones/update`).
 
-- **Canary:**  
-  Stopniowe kierowanie części ruchu do nowej wersji w celu testowania jej stabilności przed pełnym wdrożeniem.
+### Mechanizmy Monitoringu (Prometheus, Grafana, Kiali, ELK)
 
-Dokumentacja: [strategia_blue_green_canary.md](./_docs/strategia_blue_green_canary.md)
-
----
-
-## 8. Informacje z Istniejących Plików i Rozszerzenia
-
-- [**`_docs/budowanie-i-zarządzanie-obrazami-dockerowymi.md`**](./_docs/budowanie-i-zarządzanie-obrazami-dockerowymi.md)  
-  Budowanie i zarządzanie obrazami Docker (multi-stage builds, versioning, repozytoria).
-
-- [**`_docs/strategia_blue_green_canary.md`**](./_docs/strategia_blue_green_canary.md)  
-  Strategie wdrożeń Blue-Green i Canary.
-
-- [**`_docs/readme.md`**](./_docs/readme.md)  
-  Ogólny opis projektu: symulacja roju, komunikacja MQTT, wdrożenie, monitoring, CI/CD.
-
-Dodatkowe dokumenty w `_docs/` omawiają szczegółowo komponenty takie jak broker MQTT, agregator, API oraz najlepsze praktyki w budowaniu obrazów i wdrożeniach.
-
----
-
-## 9. Implementacja Logiki, Sterowania i Bezpieczeństwo w Klastrze
-
-Po skonfigurowaniu klastra i uruchomieniu dronów oraz agregatora, kolejnym krokiem jest implementacja logiki zarządzającej dronami:
-
-- **Decyzje Autonomiczne:**  
-  Każdy dron (pod) może podejmować decyzje na podstawie otrzymywanych danych i warunków środowiskowych.
-
-- **Bezpieczeństwo Kontenerów:**  
-  Zasady bezpieczeństwa (np. Pod Security Policies lub obecnie Pod Security Admission), RBAC, Network Policies oraz Secrets Management chronią kontenery przed nieautoryzowanym dostępem.
-
-- **Monitorowanie i Logowanie:**  
-  Narzędzia jak Prometheus, Grafana, ELK Stack zapewniają wgląd w stan klastra, logi i metryki dronów oraz pozwalają na szybką reakcję na incydenty.
-
-- **Skalowalność:**  
-  Automatyczne skalowanie dronów w odpowiedzi na zmieniające się warunki obciążenia.
+1. **Prometheus**:
+   - Zbiera metryki z Envoy sidecar, aggregator-api, dronów, AI.
+   - Dane o latencjach, przepustowości MQTT, wykorzystaniu zasobów.
+2. **Grafana**:
+   - Wizualizacja – dashboardy z ruchu w MQTT, obciążenia CPU dronów, tworzonych modeli AI.
+3. **Kiali**:
+   - Podgląd topologii usług w mesh, sprawdzanie mTLS, polityk dostępu.
+4. **ELK Stack**:
+   - Scalenie logów dronów, aggregator, API, broker, AI, z centralną analizą (np. Kibana).
+   - Możliwość wykrywania anomalii w logach (np. próby ataków).
 
 ---
 
-## 10. Podsumowanie
+## 5. Zabezpieczenia Chmurowe i IoT w Projekcie
 
-Całość projektu stanowi kompleksowe rozwiązanie do symulacji i zarządzania rojem dronów w chmurowej infrastrukturze kontenerowej. Dzięki wykorzystaniu MQTT, Kubernetes, Istio, CI/CD, monitoringu i strategii wdrożeń Blue-Green i Canary, system jest skalowalny, odporny, bezpieczny i łatwy w utrzymaniu. Rozbudowa o nowe funkcje, jak autonomiczne algorytmy sterowania czy integracje z zewnętrznymi usługami, jest prosta dzięki modularnej architekturze.
+### MQTT Security (TLS, Hasła, Autoryzacja)
 
-Projekt ten stanowi bazę do dalszych eksperymentów i wdrożeń w obszarach IoT, chmury i mikrousług, demonstrując najlepsze praktyki w zarządzaniu środowiskiem wielokontenerowym i wysoce skalowalnym.  
-```
+1. **TLS / SSL**:
+   - Port 8883, broker generuje certyfikaty (ConfigMap + Secret w K8s).
+   - Drony i aggregator muszą być skonfigurowane do użycia TLS (paho-mqtt).
+2. **Hasła i ACL**:
+   - `mosquitto.conf` z `allow_anonymous false`.
+   - Plik `password_file` – każdy dron ma unikalne hasło.
+   - **Access Control List**: drony mogą tylko `publish`, aggregator może `subscribe`.
+3. **Inne**:
+   - Limit połączeń klienckich, *per IP throttling*, ograniczenie QoS.
+
+### Bezpieczeństwo Kontenerów i Pod Security
+
+1. **Minimalne obrazy**:
+   - `FROM python:3.9-slim` lub `FROM distroless/base`.
+   - Usuwanie zbędnych pakietów.
+2. **Pod Security**:
+   - Uruchamianie jako nie-root, read-only filesystem, brak dostępu do host namespaces.
+3. **Skanowanie Podatności**:
+   - Narzędzia typu **Trivy**, **Clair**, **Anchore** do analizy obrazów.
+   - Automatyzacja w pipeline’ach CI/CD.
+
+### Hardening Obrazów i Infrastructure as Code
+
+1. **Infrastructure as Code** (IaC):
+   - Pliki YAML K8s przechowywane w repo Git (GitOps).
+   - Recenzja, testy i walidacja (np. **OPA Gatekeeper** – sprawdzanie reguł bezpieczeństwa).
+2. **Hardening**:
+   - Redukcja liczby warstw w Dockerfile.
+   - Włączenie SELinux / AppArmor w węzłach K8s.
+
+### Zaawansowane Mechanizmy DevSecOps
+
+1. **SAST/DAST**:
+   - SAST: analiza kodu aggregator, aggregator-api, AI (np. SonarQube, Bandit).
+   - DAST: symulowanie ataków na endpointy API (OWASP ZAP).
+2. **Secret Management**:
+   - HashiCorp Vault lub K8s Secrets (z automatyczną rotacją kluczy).
+3. **Policy as Code**:
+   - OPA (Open Policy Agent), Rego – weryfikowanie czy wdrożenia spełniają standardy (np. nie-root, mTLS).
+
+---
+
+## 6. Bezpieczeństwo Algorytmów AI
+
+### Ataki na Modele ML (Adversarial, Data Poisoning)
+
+1. **Adversarial**:
+   - Próba wstrzyknięcia nieznacznych zmian do danych (np. fałszywe parametry dronów) w celu zmylenia modelu.
+   - Projekt może symulować takie ataki i testować mechanizmy obronne (detekcja anomalii).
+2. **Data Poisoning**:
+   - Złośliwe drony publikują sfałszowane dane do broker MQTT → aggregator → AI.
+   - Skutkuje „zatruciem” zbioru treningowego i generowaniem błędnych modeli.
+3. **Ochrona**:
+   - Walidacja danych wejściowych, podpisy cyfrowe, kwarantanna danych.
+   - Mechanizmy typu noise detection, RANSAC, filtry statystyczne.
+
+### Mechanizmy Uwierzytelniania i Autoryzacji w Systemach AI
+
+1. **Tokeny JWT**:
+   - Gwarancja, że jedynie autoryzowani użytkownicy (np. admin ML) mogą przeprowadzić trening lub wdrożyć nowy model.
+2. **Role-based Access**:
+   - Operator ML vs. operator systemu – różne uprawnienia.
+   - Przykładowo, inżynier modelu może widzieć parametry, ale niekoniecznie zmieniać konfig bazy danych.
+3. **Bezpieczne API do przechowywania modeli**:
+   - Docker Registry dla modeli ML lub dedykowane rozwiązanie (S3 + podpisy).
+   - Walidacja integralności (np. hash modeli).
+
+### Model Governance i Ciągła Walidacja
+
+1. **Model Governance**:
+   - Rejestrowanie wersji modeli, audyt, kto i kiedy wdrożył model w klastrze.
+   - Testy wydajności i bezpieczeństwa (skrypty do automatycznych testów).
+2. **Ciągła Walidacja**:
+   - Monitoring jakości modelu w czasie rzeczywistym (czy przewiduje poprawnie?),
+   - Mechanizmy rollback w razie wykrycia anomalii.
+
+---
+
+## 7. Scenariusze Eksperymentalne i Testy Bezpieczeństwa
+
+### Testy Penetracyjne, Fuzzing, Chaos Engineering
+
+1. **Testy Penetracyjne** (pentesty):
+   - Próba uzyskania nieautoryzowanego dostępu do aggregator-api (SQLi, XSS).
+   - Przeciążanie broker MQTT.
+   - Odwrócenie komunikacji drona → broker (sniffing, MITM).
+2. **Fuzzing**:
+   - Losowe payloady do aggregator-api / AI endpoints → wykrycie crashów.
+   - Generowanie anomalii w formacie JSON w MQTT.
+3. **Chaos Engineering**:
+   - Symulacja awarii broker MQTT, aggregator lub masowy pad dronów.
+   - Narzędzia: **Litmus**, **Chaos Mesh**.
+
+### Symulacja Awarii i Skalowanie W Górę / W Dół
+
+- **Awaria**: broker mqtt niedostępny; aggregator czeka w kolejce – jak system reaguje?
+- **Skalowanie**: dynamicznie zwiększamy liczbę dronów z 50 do 500; czy aggregator jest w stanie przetworzyć strumień?
+- **Test obciążeniowy**: saturacja CPU w aggregator + sprawdzanie, czy HPA (Horizontal Pod Autoscaler) zadziała.
+
+### Ataki na MQTT / Drony / API
+
+- **Fałszywe Drony**: Podszywające się drony z niewłaściwym hasłem MQTT – czy broker odrzuca?
+- **Brak TLS**: podsłuch danych w locie, przejęcie sterowania rojem.
+- **API Attack**: Podmienianie tras dronów, np. `POST /api/drones/123/update` – bez autoryzacji?
+
+### Przykładowe Ćwiczenia Edukacyjne
+
+1. **„Zabezpiecz broker MQTT”**: włączyć TLS i hasła, przetestować atak brute force.
+2. **„Zmigruj aggregator do minimalnego obrazu i przeskanuj go w CI/CD”**.  
+3. **„Chaos test aggregator – ubij pody losowo i sprawdź dostępność API”**.
+4. **„Atak data poisoning na AI”**: wprowadzenie 10% fałszywych danych i analiza wpływu na model.
+
+---
+
+## 8. Perspektywa CI/CD i Pipeline Bezpieczeństwa
+
+1. **Pipeline** (np. GitLab/Jenkins/ArgoCD):
+   - Kod (repo Git) → budowanie kontenerów → SAST skany → testy jednostkowe → DAST (opcjonalnie staging environment) → wdrożenie do K8s.
+2. **Kontrola wersji** obrazów w rejestrze (np. Harbor, ECR, Artifactory).  
+3. **Scan Dependencies** (pip, npm, cargo) – usuwanie podatnych bibliotek.
+4. **Monitor Wdrożenia**: Rollout Canary/Blue-Green w Istio + rewizja ruchu.
+5. **Automatyzacja**:
+   - GitOps z Flux/Argo → każda zmiana w repo YAML => automatyczne wdrożenie.
+   - **Policy as Code** – OPA Gatekeeper do weryfikacji reguł (np. brak praw root w dronie).
+
+---
+
+---
+
+## 9. Podsumowanie
+
+Projekt ten stanowi **kompleksowe laboratorium bezpieczeństwa chmurowego**:
+
+1. **Wielowarstwowość**: IoT (drony), broker MQTT, aggregator, aggregator-api, ML – wszystko spięte przez **Kubernetes** i **Istio**.
+2. **Pełne spektrum zabezpieczeń**:
+   - **Transport** (mTLS, TLS w MQTT, ACL).
+   - **Dane** (autoryzacja, walidacja payloadów, minimalne kontenery).
+   - **Infrastruktura** (Pod Security, RBAC, NetworkPolicy).
+   - **Machine Learning** (atak na modele, governance).
+3. **Możliwości edukacyjne i badawcze**:
+   - Od pisania prostych dronów w Pythonie, przez wdrażanie kolejnych usług, aż po zaawansowane scenariusze ataków i chaos engineering.
+   - Pokazanie w praktyce, jak wygląda DevSecOps i ciągłe zabezpieczanie systemu.
+4. **Skalowalność i modularność**:
+   - Można łatwo dodawać kolejne moduły (np. integracja z zewnętrzną bazą, system billingowy).
+   - Wysoka elastyczność w doborze technologii i usług.
+
+**Dzięki temu laboratorium** uczestnicy mogą uczyć się i eksperymentować z pełnym zestawem narzędzi i technik bezpieczeństwa w chmurze, tworząc w kontrolowanym środowisku system IoT, który **odzwierciedla** współczesne wyzwania przedsiębiorstw w zakresie **bezpieczeństwa, niezawodności i efektywnego zarządzania** chmurą oraz algorytmami sztucznej inteligencji.
