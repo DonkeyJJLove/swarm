@@ -840,6 +840,25 @@ spec:
 
 Upewnij się, że obrazy Docker dla dronów i agregatora są zbudowane i przesłane do rejestru Docker (`localhost:5000` w tym przypadku).
 
+
+### Uruchomienie Lokalnego Rejestru Docker
+
+Aby korzystać z własnego, lokalnego rejestru obrazów Docker, wykonaj poniższe kroki:
+
+1. **Uruchomienie rejestru Docker:**
+
+    ```bash
+    docker run -d -p 5000:5000 --restart always --name registry registry:2
+    ```
+
+2. **Sprawdzenie zawartości rejestru:**
+
+    ```bash
+    curl http://localhost:5000/v2/_catalog
+    ```
+
+   Powinieneś zobaczyć listę dostępnych repozytoriów w rejestrze.
+
 ```bash
 # Budowanie obrazu drona
 cd drones/

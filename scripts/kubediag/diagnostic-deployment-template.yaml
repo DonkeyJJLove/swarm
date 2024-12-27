@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kubediag-deployment
+  labels:
+    app: kubediag
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kubediag
+  template:
+    metadata:
+      labels:
+        app: kubediag
+    spec:
+      containers:
+      - name: kubediag-container
+        image: <IMAGE_NAME>
+        imagePullPolicy: Always
+        stdin: true
+        tty: true
+        securityContext:
+          runAsUser: 0
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "1"
+        volumeMounts:
+        - name: capture-data
+          mountPath: /captures
+      volumes:
+      - name: capture-data
+        emptyDir: {}
+      restartPolicy: Always

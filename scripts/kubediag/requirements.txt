@@ -1,0 +1,4 @@
+# Jeśli planujesz rozszerzenia oparte na Python, dodaj tutaj zależności
+# Przykład:
+flask
+requests

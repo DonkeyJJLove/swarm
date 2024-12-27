@@ -10,6 +10,7 @@ MQTT_BROKER = os.getenv("MQTT_BROKER", "mqtt-broker")
 MQTT_PORT = int(os.getenv("MQTT_PORT", "1883"))
 MQTT_TOPIC = os.getenv("MQTT_TOPIC", "drone/positions")
 
+
 def on_connect(client, userdata, flags, rc):
     """
     Funkcja wywoływana po próbie połączenia z brokerem MQTT.
@@ -22,6 +23,7 @@ def on_connect(client, userdata, flags, rc):
     else:
         print(f"[mqtt_bridge] Connection failed (rc={rc})")
 
+
 def on_message(client, userdata, msg):
     """
     Funkcja wywoływana dla każdej wiadomości otrzymanej z zasubskrybowanego topiku.
@@ -33,6 +35,7 @@ def on_message(client, userdata, msg):
     # - Forward do aggregator UDP (wysyłka na aggregator-service:5001)
     # - Zapis do bazy / innego API
     # - Filtry anomalii, itp.
+
 
 if __name__ == "__main__":
     print("[mqtt_bridge] Starting up MQTT bridge...")
