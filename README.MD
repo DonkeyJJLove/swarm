@@ -727,5 +727,3 @@ Dokumentacja jest żywym dokumentem i będzie aktualizowana wraz z rozwojem proj
 
 - **Pipeline CI/CD** integruje budowanie, testowanie, skanowanie i wdrażanie komponentów, zapewniając automatyzację i bezpieczeństwo na każdym etapie.
 - **GitOps** z narzędziami takimi jak **ArgoCD** czy **Flux** umożliwia synchronizację stanu klastra z repozytorium Git, co ułatwia zarządzanie i audyt zmian.
-
-Mam nadzieję, że ta zaktualizowana wersja dokumentacji jest bardziej precyzyjna i odpowiada na Twoje potrzeby. Jeśli masz dalsze uwagi lub potrzebujesz dodatkowych zmian, proszę daj znać!
