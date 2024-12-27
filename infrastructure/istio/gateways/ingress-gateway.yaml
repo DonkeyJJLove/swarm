@@ -1,0 +1,31 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: swarm-ingress-gateway
+  namespace: istio-system
+spec:
+  selector:
+    istio: ingressgateway # używa domyślnego Ingress Gateway zainstalowanego przez Istio
+  servers:
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+        - "*"
+    - port:
+        number: 443
+        name: https
+        protocol: HTTPS
+      hosts:
+        - "aggregator.example.com"
+        - "serwer.example.com"
+      tls:
+        mode: SIMPLE
+        credentialName: aggregator-credential
+    - port:
+        number: 1883
+        name: mqtt
+        protocol: TCP
+      hosts:
+        - "mqtt.aggregator.example.com"

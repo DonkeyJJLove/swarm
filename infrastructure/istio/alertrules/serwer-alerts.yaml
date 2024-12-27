@@ -1,0 +1,17 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: serwer-alerts
+  namespace: default
+spec:
+  groups:
+    - name: serwer-alerts
+      rules:
+        - alert: SerwerHighErrorRate
+          expr: rate(http_requests_total{response_code=~"5.."}[5m]) / rate(http_requests_total[5m]) > 0.05
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Wysoki wskaźnik błędów serwera"
+            description: "Serwer {{ $labels.app }} ma więcej niż 5% błędów 5xx przez ostatnie 2 minuty."

@@ -1,0 +1,20 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: swarm-egress-virtualservice
+  namespace: default
+spec:
+  hosts:
+    - "external-service.com"
+  gateways:
+    - istio-system/swarm-egress-gateway
+  tls:
+    - match:
+        - port: 443
+          sni_hosts:
+            - "external-service.com"
+      route:
+        - destination:
+            host: external-service.com
+            port:
+              number: 443

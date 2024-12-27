@@ -1,0 +1,45 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: swarm-virtualservice
+  namespace: default
+spec:
+  hosts:
+    - "aggregator.example.com"
+    - "mqtt.aggregator.example.com"
+    - "serwer.example.com"
+  gateways:
+    - istio-system/swarm-ingress-gateway
+  http:
+    - match:
+        - uri:
+            prefix: /api
+      route:
+        - destination:
+            host: aggregator-api
+            port:
+              number: 80
+    - match:
+        - uri:
+            prefix: /web
+      route:
+        - destination:
+            host: web-service
+            port:
+              number: 80
+    - match:
+        - uri:
+            prefix: /serwer
+      route:
+        - destination:
+            host: serwer
+            port:
+              number: 8080
+  tcp:
+    - match:
+        - port: 1883
+      route:
+        - destination:
+            host: mqtt_bridge
+            port:
+              number: 1883

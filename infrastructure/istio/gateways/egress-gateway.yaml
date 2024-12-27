@@ -1,0 +1,17 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: swarm-egress-gateway
+  namespace: istio-system
+spec:
+  selector:
+    istio: egressgateway # używa domyślnego Egress Gateway zainstalowanego przez Istio
+  servers:
+    - port:
+        number: 443
+        name: https
+        protocol: HTTPS
+      hosts:
+        - "external-service.com"
+      tls:
+        mode: PASSTHROUGH
