@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-aggregator
+  namespace: laboratory-swarm
+spec:
+  podSelector:
+    matchLabels:
+      app: aggregator
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: drone
+      ports:
+        - protocol: UDP
+          port: 6000
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: aggregator-api
+      ports:
+        - protocol: TCP
+          port: 6001

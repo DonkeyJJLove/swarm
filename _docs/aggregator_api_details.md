@@ -112,7 +112,7 @@ def update_drone(drone_id):
     return jsonify({"message": f"Drone {drone_id} updated", "data": DRONES_DATA[drone_id]})
 
 if __name__ == "__main__":
-    port = int(os.getenv("AGGREGATOR_API_PORT", "5000"))
+    port = int(os.getenv("AGGREGATOR_API_PORT", "5001"))
     app.run(host="0.0.0.0", port=port)
 ```
 
@@ -182,7 +182,7 @@ spec:
   ports:
     - name: http
       port: 80
-      targetPort: 5000
+      targetPort: 6001
   type: ClusterIP
 ```
 
@@ -208,8 +208,8 @@ spec:
 W **Dockerfile** można użyć:
 
 ```dockerfile
-ENV AGGREGATOR_API_PORT=5000
-EXPOSE 5000
+ENV AGGREGATOR_API_PORT=6001
+EXPOSE 6001
 ```
 
 ---

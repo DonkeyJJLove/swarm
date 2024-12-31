@@ -1,10 +1,15 @@
 FROM python:3.11-slim
 
 WORKDIR /app
-COPY aggregator_api/aggregator_api.py /app/aggregator_api.py
+COPY drone_logic.py /app/drone_logic.py
+COPY requirements.txt /app/requirements.txt
 
-# Instalacja zależności, jeśli są potrzebne (odkomentuj i dostosuj)
-COPY aggregator/requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-CMD ["python", "aggregator_api.py"]
+ENV DRONE_ID="default_drone"
+ENV AGGREGATOR_HOST="aggregator-service.laboratory-swarm.svc.cluster.local"
+ENV AGGREGATOR_PORT="5001"
+
+EXPOSE 7000
+
+CMD ["python", "drone_logic.py"]

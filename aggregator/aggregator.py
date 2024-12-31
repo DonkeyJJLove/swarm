@@ -1,9 +1,14 @@
 import socket
 import threading
 import os
+import json
+import requests
 
-# Odczyt portu z zmiennej środowiskowej AGGREGATOR_PORT (domyślnie 5001).
-AGGREGATOR_PORT = int(os.getenv("AGGREGATOR_PORT", "5001"))
+# Odczyt portu z zmiennej środowiskowej AGGREGATOR_PORT (domyślnie 6000).
+AGGREGATOR_PORT = int(os.getenv("AGGREGATOR_PORT", "6000"))
+AGGREGATOR_API_URL = os.getenv("AGGREGATOR_API_URL",
+                               "http://aggregator-api-service.laboratory-swarm.svc.cluster.local:6001/api/data")
+
 
 def handle_message(data, addr):
     """
@@ -12,16 +17,21 @@ def handle_message(data, addr):
     :param data: surowe dane z gniazda socket
     :param addr: krotka (ip, port) nadawcy
     """
-    # Dekodowanie w trybie 'replace' – nie przerywaj w razie błędów znaków
-    message = data.decode(errors='replace')
-    print(f"[aggregator] Received from {addr}: {message}")
+    try:
+        # Dekodowanie w trybie 'replace' – nie przerywaj w razie błędów znaków
+        message = data.decode(errors='replace')
+        print(f"[aggregator] Received from {addr}: {message}")
 
-    # W tym miejscu można:
-    # 1. Zapisać dane do bazy
-    # 2. Przetworzyć / zanalizować dane
-    # 3. Wysłać je do innego serwisu (np. aggregator-api) - requests.post(...)
-    # 4. Wprowadzić logikę walidacji lub weryfikacji (np. JSON vs surowy tekst)
-    # 5. Obserwować potencjalne anomalie, logować w systemie SIEM
+        # Przekazywanie danych do Aggregator API
+        data_json = json.loads(message)
+        response = requests.post(AGGREGATOR_API_URL, json=data_json)
+        if response.status_code == 200:
+            print("[aggregator] Data successfully sent to Aggregator API.")
+        else:
+            print(f"[aggregator] Failed to send data to Aggregator API: {response.status_code}")
+    except Exception as e:
+        print(f"[aggregator] Error processing message: {e}")
+
 
 def run_aggregator():
     """
@@ -40,6 +50,7 @@ def run_aggregator():
             args=(data, addr),
             daemon=True
         ).start()
+
 
 if __name__ == "__main__":
     run_aggregator()

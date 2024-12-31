@@ -969,7 +969,7 @@ Przykładowy wynik:
 
 ```
 NAME             TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)    AGE
-drone-service    ClusterIP   None             <none>        5000/TCP   3h36m
+drone-service    ClusterIP   None             <none>        5001/TCP   3h36m
 kubernetes       ClusterIP   10.96.0.1        <none>        443/TCP    4h3m
 mqtt-broker      ClusterIP   10.100.174.192   <none>        1883/TCP   4m41s
 ```

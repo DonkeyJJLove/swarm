@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: mqtt-broker
+  namespace: laboratory-swarm
 spec:
   replicas: 1
   selector:
@@ -12,23 +13,21 @@ spec:
       labels:
         app: mqtt-broker
     spec:
-      # Jeśli chcesz poczekać na dostępność innych usług,
-      # możesz dodać initContainers - np. czekanie na aggregator
-      # initContainers:
-      #   - name: wait-for-something
-      #     image: nicolaka/netshoot
-      #     command: ["sh", "-c", "until nc -z aggregator-service 5001; do echo waiting; sleep 2; done"]
-      volumes:
-        - name: config-volume
-          configMap:
-            name: mosquitto-config
-            # klucz 'mosquitto.conf' zostanie zamapowany na plik w /mosquitto/config
       containers:
         - name: mqtt-broker
-          image: eclipse-mosquitto:latest
+          image: eclipse-mosquitto:2.0
           ports:
             - containerPort: 1883
               protocol: TCP
           volumeMounts:
-            - name: config-volume
-              mountPath: /mosquitto/config
+            - name: mosquitto-config
+              mountPath: /mosquitto/config/mosquitto.conf
+              subPath: mosquitto.conf
+            - name: mosquitto-data
+              mountPath: /mosquitto/data
+      volumes:
+        - name: mosquitto-config
+          configMap:
+            name: mosquitto-config
+        - name: mosquitto-data
+          emptyDir: {}

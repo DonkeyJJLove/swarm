@@ -13,3 +13,5 @@ spec:
       - jaeger.example.com
     annotations:
       kubernetes.io/ingress.class: "nginx"
+  storage:
+    type: memory

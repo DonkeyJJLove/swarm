@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: mqtt-bridge
+  namespace: laboratory-swarm
 spec:
   replicas: 1
   selector:
@@ -16,27 +17,22 @@ spec:
         - name: wait-for-mqtt
           image: nicolaka/netshoot
           command: ["sh", "-c", "until nc -z mqtt-broker 1883; do echo waiting for mqtt-broker; sleep 2; done"]
-
       containers:
-      - name: mqtt-bridge
-        # Obraz zbudowany na bazie Dockerfile w katalogu mqtt_bridge/
-        # Zmieniaj zgodnie z rejestrem/kontrolerem obrazów
-        image: localhost:5000/mqtt-bridge:latest
-        env:
-          - name: MQTT_BROKER
-            value: "mqtt-broker"
-          - name: MQTT_PORT
-            value: "1883"
-          # Domyślnie mqtt_bridge.py używa MQTT_TOPIC=drone/positions,
-          # ale można to nadpisać, np.:
-          # - name: MQTT_TOPIC
-          #   value: "some/other/topic"
-
-        # Można dodać ograniczenia zasobów i zapotrzebowania, np.:
-        # resources:
-        #   requests:
-        #     cpu: "50m"
-        #     memory: "64Mi"
-        #   limits:
-        #     cpu: "200m"
-        #     memory: "128Mi"
+        - name: mqtt-bridge
+          image: localhost:5000/mqtt-bridge:latest
+          env:
+            - name: MQTT_BROKER
+              value: "mqtt-broker.laboratory-swarm.svc.cluster.local"
+            - name: MQTT_PORT
+              value: "1883"
+            - name: TARGET_API_URL
+              value: "http://aggregator-api-service.laboratory-swarm.svc.cluster.local:6001/api/data"
+            - name: MQTT_TOPIC
+              value: "drone/positions"
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "250m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"

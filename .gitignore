@@ -1,3 +1,11 @@
+.gitignore
+/test.md
+/_docs/idea-i-koncepcja.md
+/.env
+/NOTES
 /.venv/
 /.idea/
+/venv/
 /scripts/ai/
+/scripts/code_inspect/
+/scripts/docs_inspect/

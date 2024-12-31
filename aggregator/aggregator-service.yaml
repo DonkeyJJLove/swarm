@@ -2,12 +2,13 @@ apiVersion: v1
 kind: Service
 metadata:
   name: aggregator-service
+  namespace: laboratory-swarm
 spec:
   selector:
     app: aggregator
   ports:
     - name: aggregator-udp
-      port: 5001
-      targetPort: 5001
+      port: 6000
+      targetPort: 6000
       protocol: UDP
   type: ClusterIP

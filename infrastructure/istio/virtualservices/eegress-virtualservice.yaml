@@ -2,7 +2,7 @@ apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
   name: swarm-egress-virtualservice
-  namespace: default
+  namespace: laboratory-swarm
 spec:
   hosts:
     - "external-service.com"

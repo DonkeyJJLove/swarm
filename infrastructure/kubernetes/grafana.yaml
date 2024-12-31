@@ -24,6 +24,12 @@ spec:
                 secretKeyRef:
                   name: grafana-admin
                   key: password
+          volumeMounts:
+            - name: grafana-storage
+              mountPath: /var/lib/grafana
+      volumes:
+        - name: grafana-storage
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
@@ -35,5 +41,7 @@ spec:
   ports:
     - port: 80
       targetPort: 3000
+      protocol: TCP
+      name: http
   selector:
     app: grafana

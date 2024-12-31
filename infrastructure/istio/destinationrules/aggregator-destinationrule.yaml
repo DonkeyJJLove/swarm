@@ -2,9 +2,9 @@ apiVersion: networking.istio.io/v1alpha3
 kind: DestinationRule
 metadata:
   name: aggregator-destinationrule
-  namespace: default
+  namespace: laboratory-swarm
 spec:
-  host: aggregator-api
+  host: aggregator-service.laboratory-swarm.svc.cluster.local
   trafficPolicy:
     tls:
       mode: ISTIO_MUTUAL

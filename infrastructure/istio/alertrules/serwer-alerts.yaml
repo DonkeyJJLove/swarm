@@ -2,7 +2,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
   name: serwer-alerts
-  namespace: default
+  namespace: laboratory-swarm
 spec:
   groups:
     - name: serwer-alerts
@@ -15,3 +15,11 @@ spec:
           annotations:
             summary: "Wysoki wskaźnik błędów serwera"
             description: "Serwer {{ $labels.app }} ma więcej niż 5% błędów 5xx przez ostatnie 2 minuty."
+        - alert: SerwerHighLatency
+          expr: histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[5m])) by (le)) > 1
+          for: 2m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Wysoka latencja na serwerze"
+            description: "99. percentyl latencji przekracza 1 sekundę przez ostatnie 2 minuty."
