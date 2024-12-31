@@ -47,11 +47,94 @@ Security is paramount in the Laboratory Swarm Application's infrastructure. This
 
 ## Architecture
 
-![Security Architecture](./architecture.png)
+```
++-----------------------------------------------------------------------+
+|                           Kubernetes Cluster                          |
+|                                                                       |
+|  +----------------------+     +---------------------+     +----------+ |
+|  | Namespace:           |     | Namespace:          |     |Namespace | |
+|  | laboratory-swarm     |     | monitoring          |     |istio-    | |
+|  |                      |     |                     |     |system    | |
+|  +---------+------------+     +----------+----------+     +----+-----+ |
+|            |                           |                       |       |
+|            |                           |                       |       |
+|  +---------+---------+     +-----------+----------+   +--------+-----+ |
+|  | Aggregator        |     | Prometheus           |   | Ingress &     | |
+|  | Deployment &      |     | Deployment            |   | Egress GW     | |
+|  | Service           |     |                      |   | (Istio)       | |
+|  +---------+---------+     +-----------+----------+   +--------+-----+ |
+|            |                           |                       |       |
+|            |                           |                       |       |
+|  +---------+---------+     +-----------+----------+       +----+----+ |
+|  | AI Service        |     | Grafana              |       | Virtual    | |
+|  | Deployment &      |     | Deployment            |       | Services & | |
+|  | Service           |     |                      |       | Destination | |
+|  +---------+---------+     +-----------+----------+       | Rules      | |
+|            |                           |                      +----+----+ |
+|            |                           |                           |     |
+|  +---------+---------+     +-----------+----------+                |     |
+|  | Server Deployment |     | Alertmanager         |                |     |
+|  | & Service         |     | Deployment            |                |     |
+|  +---------+---------+     +-----------+----------+                |     |
+|            |                           |                           |     |
+|            |                           |                           |     |
+|  +---------+---------+     +-----------+----------+                |     |
+|  | PostgreSQL        |     | Jaeger               |                |     |
+|  | Deployment &      |     | Deployment            |                |     |
+|  | Service           |     |                      |                |     |
+|  +---------+---------+     +-----------+----------+                |     |
+|            |                           |                           |     |
+|            |                           |                           |     |
+|  +---------+---------+                                     +-------+-----+ |
+|  | Drones Deployment |                                     | Policies &   | |
+|  | & Service         |                                     | RBAC         | |
+|  +--------------------+                                     +--------------+ |
+|                                                                       |
+|  +----------------------+     +---------------------+                  |
+|  | Network Policies     |     | Pod Security Policies|                 |
+|  +----------------------+     +---------------------+                  |
+|                                                                       |
+|  +----------------------+                                            |
+|  | Secrets Management   |                                            |
+|  +----------------------+                                            |
++-----------------------------------------------------------------------+
+```
 
 *Figure: High-level architecture of the Security component.*
 
-The security architecture integrates with all other infrastructure components to provide comprehensive protection. It leverages Kubernetes' native security features, Istio's service mesh security capabilities, secure configurations for PostgreSQL, and secure access controls for monitoring tools.
+### Diagram Explanation
+
+1. **Kubernetes Cluster**: The central platform orchestrating all containerized applications and services.
+
+2. **Namespaces**:
+   - **laboratory-swarm**: Main namespace housing core application components such as Aggregator, AI Service, Server, PostgreSQL, and Drones.
+   - **monitoring**: Dedicated namespace for monitoring tools like Prometheus, Grafana, Alertmanager, and Jaeger.
+   - **istio-system**: Namespace for Istio components, including Ingress and Egress Gateways.
+
+3. **Components**:
+   - **Aggregator Deployment & Service**: Collects telemetry data from drones.
+   - **AI Service Deployment & Service**: Processes data using machine learning models.
+   - **Server Deployment & Service**: Manages data storage and provides APIs for data access and visualization.
+   - **PostgreSQL Deployment & Service**: Database service storing drone data securely.
+   - **Drones Deployment & Service**: Simulated drones publishing telemetry data.
+   - **Prometheus Deployment**: Metrics collection and monitoring.
+   - **Grafana Deployment**: Visualization of metrics and monitoring data.
+   - **Alertmanager Deployment**: Manages alerts based on Prometheus rules.
+   - **Jaeger Deployment**: Distributed tracing for monitoring service interactions.
+   - **Ingress & Egress Gateway (Istio)**: Manages incoming and outgoing network traffic with security controls.
+   - **Virtual Services & Destination Rules (Istio)**: Define routing and policies for service communication.
+   - **Policies & RBAC**: Define access controls and security policies across the cluster.
+   - **Network Policies**: Control network traffic between pods to enforce isolation and security.
+   - **Pod Security Policies**: Enforce security standards and restrictions on pod specifications.
+   - **Secrets Management**: Secure storage and management of sensitive information like passwords and API keys.
+
+4. **Security Layers**:
+   - **RBAC**: Controls who can access and modify Kubernetes resources.
+   - **Network Policies**: Restrict traffic flow between different components to minimize attack surfaces.
+   - **Pod Security Policies**: Ensure pods adhere to defined security standards, preventing privilege escalation and unauthorized access.
+   - **Secrets Management**: Protect sensitive data by storing it securely and controlling access through Kubernetes Secrets.
+
+---
 
 ## Components
 
@@ -252,7 +335,7 @@ spec:
   rules:
     - from:
         - source:
-            principals: ["cluster.local/ns/laboratory-swarm/sa/drone-service-account"]
+            principals: ["cluster.local/ns/laboratory-swarm/sa/drone-serviceaccount"]
       to:
         - operation:
             methods: ["GET", "POST"]
@@ -373,7 +456,7 @@ GRANT SELECT, INSERT ON ALL TABLES IN SCHEMA public TO drone_user;
 
 - **Use Encrypted Storage Backends**: Ensure that PersistentVolumes use encryption provided by the storage provider.
 - **Enable PostgreSQL's Native Encryption**: Implement Transparent Data Encryption (TDE) if supported.
-  
+
 **Example Configuration:**
 
 ```yaml
@@ -402,7 +485,7 @@ volumeClaimTemplates:
      ssl_cert_file = '/var/lib/postgresql/data/server.crt'
      ssl_key_file = '/var/lib/postgresql/data/server.key'
      ```
-   
+
 2. **Provide SSL Certificates:**
 
    - Store SSL certificates in Kubernetes Secrets.
@@ -412,7 +495,7 @@ volumeClaimTemplates:
        --key=path/to/server.key \
        -n laboratory-swarm
      ```
-   
+
 3. **Mount Certificates in Pods:**
 
    ```yaml
@@ -458,7 +541,7 @@ Securing the monitoring tools ensures that sensitive metrics, logs, and traces a
 
 - **Restrict Access**: Limit access to Prometheus dashboards and API endpoints using RBAC and authentication mechanisms.
 - **Enable TLS**: Encrypt Prometheus web interfaces and API endpoints.
-  
+
   **Example Ingress Configuration for Prometheus with TLS:**
 
   ```yaml
@@ -491,7 +574,7 @@ Securing the monitoring tools ensures that sensitive metrics, logs, and traces a
 - **Authentication and Authorization**: Implement strong authentication methods (e.g., OAuth, LDAP) and define user roles with appropriate permissions.
 - **Secure Dashboards**: Restrict access to sensitive dashboards and data sources.
 - **Enable TLS**: Encrypt Grafana's web interface using TLS.
-  
+
   **Example Grafana Deployment with TLS:**
 
   ```yaml
@@ -538,7 +621,7 @@ Securing the monitoring tools ensures that sensitive metrics, logs, and traces a
 - **Authentication and Authorization**: Protect Jaeger UI and API endpoints with authentication mechanisms.
 - **Secure Data Transmission**: Use TLS to encrypt trace data in transit.
 - **Access Controls**: Restrict access to Jaeger to authorized personnel only.
-  
+
   **Example Jaeger Ingress with TLS:**
 
   ```yaml
@@ -569,7 +652,7 @@ Securing the monitoring tools ensures that sensitive metrics, logs, and traces a
 
 - **Restrict Access**: Limit access to Alertmanager's web interface and API using RBAC and authentication.
 - **Encrypt Communication**: Use TLS to secure communications between Alertmanager and other components.
-  
+
   **Example Alertmanager Configuration with TLS:**
 
   ```yaml
@@ -808,10 +891,6 @@ Use Istio's telemetry features to collect detailed logs and metrics for service 
 - [Alertmanager Documentation](https://prometheus.io/docs/alerting/latest/alertmanager/)
 - [Kubernetes RBAC Documentation](https://kubernetes.io/docs/reference/access-authn-authz/rbac/)
 - [Kubernetes Network Policies](https://kubernetes.io/docs/concepts/services-networking/network-policies/)
-
----
-
-**Secure Everything! 🔐**
 
 ---
 
