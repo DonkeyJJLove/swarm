@@ -1,0 +1,45 @@
+{
+  "schema_version": "1.0.0",
+  "repository": {
+    "id": "DonkeyJJLove/swarm",
+    "url": "https://github.com/DonkeyJJLove/swarm",
+    "owner": "DonkeyJJLove",
+    "default_branch": "master",
+    "vcs_ref": null
+  },
+  "cyber_lion": {
+    "tile_id": "execution-mesh.swarm",
+    "roles": ["ExecutionMesh", "WorkloadRuntime", "TelemetryPlane", "CapabilityLeaseRuntime"],
+    "layers": ["INF", "MAND"],
+    "disposition": ["KEEP", "REFINE", "GENERALIZE", "INTEGRATE"]
+  },
+  "capabilities": [
+    "workload.execute",
+    "workload.identity",
+    "capability.lease",
+    "runtime.observe",
+    "runtime.receipt",
+    "swarm.reconfigure"
+  ],
+  "authority": {
+    "maximum_level": "external_write",
+    "required_gates": ["cyber-lion.mand", "execution-mesh.admission"]
+  },
+  "observability": {
+    "logs": ["workload.lifecycle", "lease.lifecycle", "execution.receipt", "authority.degradation"],
+    "metrics": ["active.workloads", "telemetry.coverage", "lease.count", "execution.failures"],
+    "traces": ["SwarmSpec→identity→lease→gate→execution→receipt"]
+  },
+  "security": {
+    "trust_boundaries": [
+      "network identity != agent identity",
+      "workload scheduled != action authorized",
+      "telemetry loss reduces effective authority",
+      "execution requires bounded capability lease and gate binding"
+    ]
+  },
+  "epistemic": {
+    "status": "ENGINEERING_CANDIDATE",
+    "confidence": 0.82
+  }
+}
