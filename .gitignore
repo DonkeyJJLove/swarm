@@ -1,12 +1,36 @@
-.gitignore
+# Local environments / IDE
+.venv/
+venv/
+.idea/
+.vscode/
+
+# Secrets / local config
+.env
+.env.*
+!.env.sample
+
+# Python generated state
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Build / runtime
+build/
+dist/
+*.log
+
+# Explicit local working areas
+backup/
+NOTES
 /test.md
 /_docs/idea-i-koncepcja.md
-/.env
-/NOTES
-/.venv/
-/.idea/
-/venv/
-/scripts/ai/
-/scripts/code_inspect/
-/scripts/docs_inspect/
-/_docs/
+scripts/ai/
+scripts/code_inspect/
+scripts/docs_inspect/
+
+# OS
+.DS_Store
+Thumbs.db

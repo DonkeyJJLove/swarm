@@ -1,0 +1,64 @@
+name: Process Guard
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  kubediag-boundary:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Compile KubeDiag
+        run: python -m py_compile scripts/kubediag/diagnostic_logic.py
+
+      - name: Forbid shell execution in KubeDiag
+        run: |
+          if grep -n "shell=True" scripts/kubediag/diagnostic_logic.py; then
+            echo "shell=True reintroduced at the user-input execution boundary"
+            exit 1
+          fi
+
+      - name: Negative input validation tests
+        run: |
+          python - <<'PY'
+          import importlib.util
+          from pathlib import Path
+
+          path = Path('scripts/kubediag/diagnostic_logic.py')
+          spec = importlib.util.spec_from_file_location('kubediag', path)
+          mod = importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(mod)
+
+          bad_hosts = ['127.0.0.1;id', 'example.com && id', '-oN/tmp/x', 'a b']
+          for value in bad_hosts:
+              try:
+                  mod.validate_host(value)
+              except ValueError:
+                  pass
+              else:
+                  raise AssertionError(f'host accepted unexpectedly: {value!r}')
+
+          bad_urls = ['file:///etc/passwd', 'https://user:pass@example.com/', 'example.com;id']
+          for value in bad_urls:
+              try:
+                  mod.validate_http_url(value)
+              except ValueError:
+                  pass
+              else:
+                  raise AssertionError(f'URL accepted unexpectedly: {value!r}')
+
+          assert mod.validate_capture_name('../../etc/passwd') == 'passwd.pcap'
+          assert mod.validate_interface('eth0') == 'eth0'
+          assert mod.validate_host('127.0.0.1') == '127.0.0.1'
+          assert mod.validate_http_url('https://example.com/a?b=c') == 'https://example.com/a?b=c'
+          PY
