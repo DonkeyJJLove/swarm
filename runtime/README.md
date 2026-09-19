@@ -73,3 +73,49 @@ DESCRIBED_AS_AGENTWORKLOAD
 !=
 AUTHORIZED_AS_AGENT
 ```
+
+## Runtime identity prerequisites
+
+Identity prerequisite qualification is evidence analysis only. It does not
+materialize `RuntimeIdentityBinding`, create an agent, or grant authority.
+
+The current compatibility bridge pins three canonical Cyber-Lion contracts at
+`DonkeyJJLove/ai_platform@da4dbd7b27b4833c0debddf839e003f2ce170d5c`:
+
+- organizational identity: Agent Registry `AgentInstance.instance_id`, bound to
+  agent/spec/lifecycle/evidence state;
+- runtime/executor identity: F009 runtime identity plus provisioned executor and
+  runtime attestation evidence;
+- artifact identity: immutable SHA-256 `ExecutorProvisioningRequest.image_digest`.
+
+The SWARM roadmap term `agent_instance_id` is not silently renamed into the
+Cyber-Lion field. Its relationship to `AgentInstance.instance_id` is recorded
+as `SEMANTIC_BRIDGE_REQUIRES_EXPLICIT_ADAPTER`.
+
+The local SWARM `RuntimeIdentityBinding` schema and the canonical F009 schema
+are not equivalent. No positional mapping, name-only mapping, or adapter is
+implemented by this phase.
+
+The current drone example remains `NOT_READY`: no canonical AgentInstance
+evidence, immutable image digest, runtime instance, runtime attestation,
+provisioned-executor digest, or qualified schema compatibility is fabricated.
+
+The invariants are:
+
+```text
+ORGANIZATIONAL_IDENTITY
++
+ARTIFACT_PROVENANCE
++
+RUNTIME_ATTESTATION
+!=
+AUTHORITY
+```
+
+and:
+
+```text
+PREREQUISITES_READY
+!=
+RUNTIME_IDENTITY_BOUND
+```
