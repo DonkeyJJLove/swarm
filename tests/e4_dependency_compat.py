@@ -62,7 +62,7 @@ class _Connection:
 class DependencyCompatibilityTests(unittest.TestCase):
     def test_expected_dependency_versions_are_installed(self):
         self.assertEqual(version("Flask"), "3.1.3")
-        self.assertEqual(version("requests"), "2.33.0")
+        self.assertEqual(version("requests"), "2.34.2")
 
     def test_aggregator_api_flask_paths(self):
         mod = load_module("e4_aggregator_api", "aggregator-api/aggregator_api.py")
