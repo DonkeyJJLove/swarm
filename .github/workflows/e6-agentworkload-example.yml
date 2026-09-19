@@ -1,0 +1,79 @@
+name: E6 AgentWorkload Example
+
+on:
+  pull_request:
+    paths:
+      - "runtime/examples/**"
+      - "runtime/README.md"
+      - "tests/e6_agentworkload_example.py"
+      - "drones/drone_logic.py"
+      - "drones/drone-deployment.yaml"
+      - "drones/drone-service.yaml"
+      - "drones/Dockerfile"
+      - "security/policies/network-policy.yaml"
+      - ".github/workflows/e6-agentworkload-example.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  agentworkload-example:
+    runs-on: ubuntu-latest
+    env:
+      EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Verify exact PR head
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+
+      - name: Compile AgentWorkload example
+        run: python -m py_compile runtime/examples/*.py tests/e6_agentworkload_example.py
+
+      - name: Run AgentWorkload example tests
+        run: |
+          python -m unittest discover \
+            -s tests \
+            -p 'e6_agentworkload_example.py' \
+            -v
+
+      - name: Verify example non-execution boundary
+        run: |
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+
+          forbidden_imports = {
+              "subprocess", "socket", "requests", "urllib", "kubernetes",
+              "docker", "paramiko", "shlex", "pty", "os",
+          }
+          forbidden_calls = {
+              "open", "connect", "send", "sendto", "bind", "listen",
+              "system", "popen", "run", "call", "spawn",
+          }
+
+          for path in sorted(Path("runtime/examples").rglob("*.py")):
+              tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+              for node in ast.walk(tree):
+                  if isinstance(node, ast.Import):
+                      for alias in node.names:
+                          if alias.name.split(".")[0] in forbidden_imports:
+                              raise SystemExit(f"forbidden import {alias.name} in {path}")
+                  elif isinstance(node, ast.ImportFrom) and node.module:
+                      if node.module.split(".")[0] in forbidden_imports:
+                          raise SystemExit(f"forbidden import {node.module} in {path}")
+                  elif isinstance(node, ast.Call):
+                      if isinstance(node.func, ast.Name) and node.func.id in forbidden_calls:
+                          raise SystemExit(f"forbidden call {node.func.id} in {path}")
+                      if isinstance(node.func, ast.Attribute) and node.func.attr in forbidden_calls:
+                          raise SystemExit(f"forbidden call {node.func.attr} in {path}")
+
+          print("AGENTWORKLOAD_NON_EXECUTION_GATE=PASS")
+          PY
