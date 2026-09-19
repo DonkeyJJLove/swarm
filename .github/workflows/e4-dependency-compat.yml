@@ -1,0 +1,35 @@
+name: E4 Dependency Compatibility
+
+on:
+  pull_request:
+    paths:
+      - "aggregator-api/**"
+      - "aggregator/mqtt_bridge/**"
+      - "server/**"
+      - "tests/e4_dependency_compat.py"
+      - ".github/workflows/e4-dependency-compat.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  python-compat:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Install affected service dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r aggregator-api/requirements.txt
+          python -m pip install -r aggregator/mqtt_bridge/requirements.txt
+          python -m pip install -r server/requirements.txt
+          python -m pip check
+
+      - name: Run focused compatibility probes
+        run: python -m unittest -v tests/e4_dependency_compat.py
