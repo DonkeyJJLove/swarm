@@ -7,6 +7,7 @@ on:
       - "aggregator/mqtt_bridge/**"
       - "server/**"
       - "tests/e4_dependency_compat.py"
+      - "tests/runtime/**"
       - ".github/workflows/e4-dependency-compat.yml"
   workflow_dispatch:
 
@@ -18,6 +19,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - uses: actions/setup-python@v6
         with:
@@ -39,6 +42,8 @@ jobs:
     needs: python-compat
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Build aggregator-api image
         run: docker build -t swarm-aggregator-api:e4 ./aggregator-api
@@ -48,3 +53,69 @@ jobs:
 
       - name: Build server image
         run: docker build -t swarm-server:e4 ./server
+
+
+  runtime-proof:
+    runs-on: ubuntu-latest
+    needs:
+      - python-compat
+      - container-build
+    env:
+      EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Verify exact PR head
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+
+      - name: Validate runtime compose
+        run: docker compose -f tests/runtime/e4_runtime_compose.yml -p lion-e4-runtime-ci config
+
+      - name: Build runtime harness
+        run: docker compose -f tests/runtime/e4_runtime_compose.yml -p lion-e4-runtime-ci --profile probe build
+
+      - name: Start runtime services
+        run: docker compose -f tests/runtime/e4_runtime_compose.yml -p lion-e4-runtime-ci up -d postgres mqtt-broker aggregator-api server mqtt-bridge
+
+      - name: Run exact-head runtime proof
+        run: |
+          set -euo pipefail
+          docker compose -f tests/runtime/e4_runtime_compose.yml -p lion-e4-runtime-ci --profile probe run --rm runtime-probe | tee /tmp/e4-runtime-proof.log
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          receipts = []
+          for line in Path("/tmp/e4-runtime-proof.log").read_text().splitlines():
+              try:
+                  candidate = json.loads(line)
+              except json.JSONDecodeError:
+                  continue
+              if candidate.get("schema_version") == "lion-e4-runtime-proof-v1":
+                  receipts.append(candidate)
+
+          if len(receipts) != 1:
+              raise SystemExit(f"expected exactly one runtime receipt, got {len(receipts)}")
+
+          receipt = receipts[0]
+          expected_head = os.environ["EXPECTED_HEAD"]
+          assert receipt["exact_head"] == expected_head, (receipt["exact_head"], expected_head)
+          assert receipt["final_result"] == "PASS", receipt
+          assert receipt["failure_classification"] is None, receipt
+          assert all(receipt["readiness"].values()), receipt
+          assert receipt["mqtt"]["connected"] is True, receipt
+          assert receipt["mqtt"]["subscribed"] is True, receipt
+          assert receipt["mqtt"]["published"] is True, receipt
+          assert receipt["mqtt"]["publish_ack_or_completion"] is True, receipt
+          assert receipt["database"]["probe_row_count"] == 1, receipt
+          assert receipt["aggregator_readback"]["semantic_match"] is True, receipt
+          assert receipt["server_readback"]["semantic_match"] is True, receipt
+          print(json.dumps(receipt, sort_keys=True, separators=(",", ":")))
+          PY
+
+      - name: Cleanup runtime harness
+        if: always()
+        run: docker compose -f tests/runtime/e4_runtime_compose.yml -p lion-e4-runtime-ci down -v --remove-orphans
