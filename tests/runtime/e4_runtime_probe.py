@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import os
+import socket
 import sys
 import threading
 import time
@@ -28,6 +29,26 @@ HTTP_REQUEST_TIMEOUT = 5.0
 DB_QUERY_TIMEOUT = 5.0
 TOTAL_RUNTIME_TIMEOUT = 120.0
 MAX_RETRY_SLEEP = 1.0
+
+REQUIRED_FAILURE_TAXONOMY = (
+    "POSTGRES_START_FAILURE",
+    "POSTGRES_SCHEMA_FAILURE",
+    "MQTT_BROKER_START_FAILURE",
+    "MQTT_CONNECT_FAILURE",
+    "MQTT_PUBLISH_FAILURE",
+    "MQTT_DELIVERY_FAILURE",
+    "DUPLICATE_DELIVERY_FAILURE",
+    "AGGREGATOR_START_FAILURE",
+    "AGGREGATOR_HTTP_FAILURE",
+    "DATABASE_CONNECT_FAILURE",
+    "DATABASE_WRITE_FAILURE",
+    "DATABASE_READBACK_FAILURE",
+    "AGGREGATOR_READBACK_FAILURE",
+    "SERVER_START_FAILURE",
+    "SERVER_READBACK_FAILURE",
+    "TIMEOUT",
+    "HARNESS_INTERNAL_FAILURE",
+)
 
 PROBE_ID = "e4-runtime-probe-1"
 PAYLOAD = {
@@ -56,10 +77,11 @@ def bounded_sleep(deadline: float, seconds: float = 0.5) -> None:
 
 
 def connect_db(dsn: str, timeout: float):
-    try:
-        return psycopg2.connect(dsn, connect_timeout=max(1, int(timeout)))
-    except Exception as exc:
-        raise ProbeFailure("DATABASE_CONNECT_FAILURE", type(exc).__name__) from None
+    return psycopg2.connect(
+        dsn,
+        connect_timeout=max(1, int(timeout)),
+        options=f"-c statement_timeout={int(DB_QUERY_TIMEOUT * 1000)}",
+    )
 
 
 def wait_postgres(dsn: str, deadline: float, receipt: dict) -> None:
@@ -67,7 +89,7 @@ def wait_postgres(dsn: str, deadline: float, receipt: dict) -> None:
     last_error = "not-ready"
     while time.monotonic() < local_deadline:
         try:
-            conn = psycopg2.connect(dsn, connect_timeout=2)
+            conn = connect_db(dsn, 2)
             try:
                 with conn.cursor() as cur:
                     cur.execute("SELECT to_regclass('public.drone_data')")
@@ -78,6 +100,8 @@ def wait_postgres(dsn: str, deadline: float, receipt: dict) -> None:
                     last_error = "drone_data-missing"
             finally:
                 conn.close()
+        except psycopg2.errors.QueryCanceled:
+            raise ProbeFailure("TIMEOUT", "db_statement_timeout") from None
         except Exception as exc:
             last_error = type(exc).__name__
         bounded_sleep(deadline)
@@ -128,6 +152,23 @@ def wait_mqtt_and_bridge(
     deadline: float,
     receipt: dict,
 ):
+    broker_deadline = min(deadline, time.monotonic() + MQTT_READY_TIMEOUT)
+    broker_reachable = False
+    while time.monotonic() < broker_deadline:
+        try:
+            sock = socket.create_connection((broker, port), timeout=1.0)
+            sock.close()
+            broker_reachable = True
+            break
+        except OSError:
+            bounded_sleep(deadline, 0.2)
+
+    if not broker_reachable:
+        raise ProbeFailure(
+            "MQTT_BROKER_START_FAILURE",
+            "broker_tcp_unavailable",
+        )
+
     connected = threading.Event()
     subscription_count_ready = threading.Event()
     connection_rc = {"value": None}
@@ -218,7 +259,7 @@ def wait_db_row(dsn: str, deadline: float, receipt: dict) -> dict:
     last_count = 0
     while time.monotonic() < local_deadline:
         try:
-            conn = psycopg2.connect(dsn, connect_timeout=2)
+            conn = connect_db(dsn, 2)
             try:
                 with conn.cursor() as cur:
                     cur.execute(
@@ -233,6 +274,8 @@ def wait_db_row(dsn: str, deadline: float, receipt: dict) -> dict:
                     rows = cur.fetchall()
             finally:
                 conn.close()
+        except psycopg2.errors.QueryCanceled:
+            raise ProbeFailure("TIMEOUT", "db_statement_timeout") from None
         except Exception as exc:
             raise ProbeFailure(
                 "DATABASE_READBACK_FAILURE", type(exc).__name__
