@@ -112,7 +112,7 @@ services:
       AGGREGATOR_URL: http://aggregator-api:6001
       SERVER_URL: http://server:8000
       DATABASE_URL: postgresql://e4probe:e4-runtime-only-password@postgres:5432/drone_db
-      EXPECTED_HEAD: 84fdabc98fadc6070865eb17816ca4e2e8ad897d
+      EXPECTED_HEAD: c3142456fe3ee258b1d0c3f225d8f542e3f623cc
     depends_on:
       postgres:
         condition: service_healthy
