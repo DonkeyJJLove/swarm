@@ -392,7 +392,8 @@ spec:
 Role-Based Access Control (RBAC) ensures that only authorized service accounts can interact with the Aggregator and other Kubernetes resources. The provided `rbac.yaml` defines:
 
 - **ServiceAccount**: `aggregator-serviceaccount`
-- **Role**: `aggregator-role` with permissions to `get`, `list`, `watch` pods and services, and to `get`, `update`, `patch` deployments.
+- **Role**: `aggregator-role` is currently limited to read-only `get`, `list`, `watch` access to pods and services. Deployment mutation authority is not granted.
+- **Workload binding**: Current workload manifests do not declare `serviceAccountName: aggregator-serviceaccount`; this documentation does not infer that the ServiceAccount is attached to a workload.
 - **RoleBinding**: Binds the `aggregator-role` to the `aggregator-serviceaccount`.
 
 ```yaml
@@ -411,9 +412,6 @@ rules:
   - apiGroups: [""]
     resources: ["pods", "services"]
     verbs: ["get", "list", "watch"]
-  - apiGroups: ["apps"]
-    resources: ["deployments"]
-    verbs: ["get", "update", "patch"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
