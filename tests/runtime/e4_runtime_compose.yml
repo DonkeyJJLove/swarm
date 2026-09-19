@@ -1,0 +1,129 @@
+services:
+  postgres:
+    image: postgres:13.23
+    environment:
+      POSTGRES_USER: e4probe
+      POSTGRES_PASSWORD: e4-runtime-only-password
+      POSTGRES_DB: drone_db
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./e4_runtime_schema.sql:/docker-entrypoint-initdb.d/001-e4-runtime-schema.sql:ro
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >
+          pg_isready -U e4probe -d drone_db &&
+          psql -U e4probe -d drone_db -tAc
+          "SELECT CASE WHEN to_regclass('public.drone_data') IS NOT NULL THEN 1 ELSE 0 END"
+          | grep -qx 1
+      interval: 1s
+      timeout: 5s
+      retries: 30
+      start_period: 2s
+
+  mqtt-broker:
+    image: eclipse-mosquitto:2.0.22
+    command:
+      - /bin/sh
+      - -ec
+      - |
+        printf '%s\n'           'listener 1883'           'allow_anonymous true'           'persistence false'           'sys_interval 1'           > /tmp/e4-mosquitto.conf
+        exec mosquitto -c /tmp/e4-mosquitto.conf
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - mosquitto_pub -h 127.0.0.1 -p 1883 -t e4/runtime/health -m ready -q 0
+      interval: 1s
+      timeout: 5s
+      retries: 20
+      start_period: 1s
+
+  aggregator-api:
+    image: swarm-e4-aggregator-api
+    build:
+      context: ../../aggregator-api
+    environment:
+      DATABASE_URL: postgresql://e4probe:e4-runtime-only-password@postgres:5432/drone_db
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import socket; s=socket.create_connection(('127.0.0.1',6001),2); s.close()"
+      interval: 1s
+      timeout: 5s
+      retries: 20
+      start_period: 1s
+
+  server:
+    image: swarm-e4-server
+    build:
+      context: ../../server
+    environment:
+      DATABASE_URL: postgresql://e4probe:e4-runtime-only-password@postgres:5432/drone_db
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import json,urllib.request; r=urllib.request.urlopen('http://127.0.0.1:8000/server/data',timeout=2); assert r.status==200 and json.loads(r.read().decode())==[]"
+      interval: 1s
+      timeout: 5s
+      retries: 20
+      start_period: 1s
+
+  mqtt-bridge:
+    image: swarm-e4-mqtt-bridge
+    build:
+      context: ../../aggregator/mqtt_bridge
+    environment:
+      MQTT_BROKER: mqtt-broker
+      MQTT_PORT: "1883"
+      MQTT_TOPIC: drone/positions
+      TARGET_API_URL: http://aggregator-api:6001/api/data
+    depends_on:
+      mqtt-broker:
+        condition: service_healthy
+      aggregator-api:
+        condition: service_healthy
+
+  runtime-probe:
+    image: swarm-e4-runtime-probe
+    profiles:
+      - probe
+    build:
+      context: ../..
+      dockerfile_inline: |
+        FROM python:3.11-slim
+        WORKDIR /app
+        RUN pip install --no-cache-dir paho-mqtt==1.6.1 requests==2.34.2 psycopg2-binary==2.9.6
+        COPY tests/runtime/e4_runtime_probe.py /app/e4_runtime_probe.py
+        CMD ["python", "/app/e4_runtime_probe.py"]
+    environment:
+      MQTT_BROKER: mqtt-broker
+      MQTT_PORT: "1883"
+      MQTT_TOPIC: drone/positions
+      AGGREGATOR_URL: http://aggregator-api:6001
+      SERVER_URL: http://server:8000
+      DATABASE_URL: postgresql://e4probe:e4-runtime-only-password@postgres:5432/drone_db
+      EXPECTED_HEAD: ${EXPECTED_HEAD:-UNBOUND}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mqtt-broker:
+        condition: service_healthy
+      aggregator-api:
+        condition: service_healthy
+      server:
+        condition: service_healthy
+      mqtt-bridge:
+        condition: service_started
+
+volumes:
+  postgres-data:
