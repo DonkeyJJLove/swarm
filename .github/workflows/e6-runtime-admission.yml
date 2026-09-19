@@ -31,8 +31,26 @@ jobs:
       - name: Compile runtime contracts
         run: python -m py_compile runtime/*.py tests/e6_runtime_admission_contract.py
 
+      - name: Verify runtime import provenance
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import runtime
+
+          actual = Path(runtime.__file__).resolve()
+          expected = Path("runtime/__init__.py").resolve()
+          assert actual == expected, (actual, expected)
+
+          print("RUNTIME_IMPORT_PROVENANCE=PASS")
+          print(f"RUNTIME_IMPORT_PATH={actual}")
+          PY
+
       - name: Run runtime admission contract tests
-        run: python tests/e6_runtime_admission_contract.py
+        run: |
+          python -m unittest discover \
+            -s tests \
+            -p 'e6_runtime_admission_contract.py' \
+            -v
 
       - name: Verify non-execution imports
         run: |
