@@ -1,0 +1,79 @@
+name: E6 Runtime Admission
+
+on:
+  pull_request:
+    paths:
+      - "runtime/**"
+      - "tests/e6_runtime_admission_contract.py"
+      - ".github/workflows/e6-runtime-admission.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  runtime-admission-contract:
+    runs-on: ubuntu-latest
+    env:
+      EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Verify exact PR head
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+
+      - name: Compile runtime contracts
+        run: python -m py_compile runtime/*.py tests/e6_runtime_admission_contract.py
+
+      - name: Verify runtime import provenance
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import runtime
+
+          actual = Path(runtime.__file__).resolve()
+          expected = Path("runtime/__init__.py").resolve()
+          assert actual == expected, (actual, expected)
+
+          print("RUNTIME_IMPORT_PROVENANCE=PASS")
+          print(f"RUNTIME_IMPORT_PATH={actual}")
+          PY
+
+      - name: Run runtime admission contract tests
+        run: |
+          python -m unittest discover \
+            -s tests \
+            -p 'e6_runtime_admission_contract.py' \
+            -v
+
+      - name: Verify non-execution imports
+        run: |
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+
+          forbidden = {
+              "subprocess", "socket", "requests", "urllib", "kubernetes",
+              "docker", "paramiko", "shlex", "pty",
+          }
+          for path in sorted(Path("runtime").glob("*.py")):
+              source = path.read_text(encoding="utf-8")
+              if "shell=True" in source or "os.system" in source:
+                  raise SystemExit(f"effect-capable construct in {path}")
+              tree = ast.parse(source, filename=str(path))
+              for node in ast.walk(tree):
+                  if isinstance(node, ast.Import):
+                      for alias in node.names:
+                          if alias.name.split(".")[0] in forbidden:
+                              raise SystemExit(f"forbidden import {alias.name} in {path}")
+                  elif isinstance(node, ast.ImportFrom) and node.module:
+                      if node.module.split(".")[0] in forbidden:
+                          raise SystemExit(f"forbidden import {node.module} in {path}")
+          print("NON_EXECUTION_IMPORT_GATE=PASS")
+          PY
