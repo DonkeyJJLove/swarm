@@ -1,0 +1,83 @@
+name: E6 Identity Prerequisites
+
+on:
+  pull_request:
+    paths:
+      - "runtime/identity_prerequisites.py"
+      - "runtime/examples/drone_identity_prerequisites.py"
+      - "runtime/README.md"
+      - "tests/e6_identity_prerequisites.py"
+      - ".github/workflows/e6-identity-prerequisites.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  identity-prerequisites:
+    runs-on: ubuntu-latest
+    env:
+      EXPECTED_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Verify exact PR head
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+
+      - name: Compile identity prerequisites
+        run: |
+          python -m py_compile \
+            runtime/identity_prerequisites.py \
+            runtime/examples/drone_identity_prerequisites.py \
+            tests/e6_identity_prerequisites.py
+
+      - name: Run identity prerequisite tests
+        run: |
+          python -m unittest discover \
+            -s tests \
+            -p 'e6_identity_prerequisites.py' \
+            -v
+
+      - name: Verify identity prerequisite non-execution boundary
+        run: |
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+
+          forbidden_imports = {
+              "subprocess", "socket", "requests", "urllib", "kubernetes",
+              "docker", "paramiko", "shlex", "pty", "os",
+          }
+          forbidden_calls = {
+              "open", "connect", "send", "sendto", "bind", "listen",
+              "system", "popen", "run", "call", "spawn",
+          }
+
+          paths = (
+              Path("runtime/identity_prerequisites.py"),
+              Path("runtime/examples/drone_identity_prerequisites.py"),
+          )
+          for path in paths:
+              tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+              for node in ast.walk(tree):
+                  if isinstance(node, ast.Import):
+                      for alias in node.names:
+                          if alias.name.split(".")[0] in forbidden_imports:
+                              raise SystemExit(f"forbidden import {alias.name} in {path}")
+                  elif isinstance(node, ast.ImportFrom) and node.module:
+                      if node.module.split(".")[0] in forbidden_imports:
+                          raise SystemExit(f"forbidden import {node.module} in {path}")
+                  elif isinstance(node, ast.Call):
+                      if isinstance(node.func, ast.Name) and node.func.id in forbidden_calls:
+                          raise SystemExit(f"forbidden call {node.func.id} in {path}")
+                      if isinstance(node.func, ast.Attribute) and node.func.attr in forbidden_calls:
+                          raise SystemExit(f"forbidden call {node.func.attr} in {path}")
+
+          print("IDENTITY_PREREQUISITE_NON_EXECUTION_GATE=PASS")
+          PY
