@@ -80,7 +80,7 @@ Identity prerequisite qualification is evidence analysis only. It does not
 materialize `RuntimeIdentityBinding`, create an agent, or grant authority.
 
 The current compatibility bridge pins three canonical Cyber-Lion contracts at
-`DonkeyJJLove/ai_platform@da4dbd7b27b4833c0debddf839e003f2ce170d5c`:
+`DonkeyJJLove/ai_platform@bf5a86556a8d7197eb1a3e29def396b2230969bb`:
 
 - organizational identity: Agent Registry `AgentInstance.instance_id`, bound to
   agent/spec/lifecycle/evidence state;
