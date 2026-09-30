@@ -9,9 +9,22 @@
   },
   "cyber_lion": {
     "tile_id": "execution-mesh.swarm",
-    "roles": ["ExecutionMesh", "WorkloadRuntime", "TelemetryPlane", "CapabilityLeaseRuntime"],
-    "layers": ["INF", "MAND"],
-    "disposition": ["KEEP", "REFINE", "GENERALIZE", "INTEGRATE"]
+    "roles": [
+      "ExecutionMesh",
+      "WorkloadRuntime",
+      "TelemetryPlane",
+      "CapabilityLeaseRuntime"
+    ],
+    "layers": [
+      "INF",
+      "MAND"
+    ],
+    "disposition": [
+      "KEEP",
+      "REFINE",
+      "GENERALIZE",
+      "INTEGRATE"
+    ]
   },
   "capabilities": [
     "workload.execute",
@@ -23,12 +36,27 @@
   ],
   "authority": {
     "maximum_level": "external_write",
-    "required_gates": ["cyber-lion.mand", "execution-mesh.admission"]
+    "required_gates": [
+      "cyber-lion.mand",
+      "execution-mesh.admission"
+    ]
   },
   "observability": {
-    "logs": ["workload.lifecycle", "lease.lifecycle", "execution.receipt", "authority.degradation"],
-    "metrics": ["active.workloads", "telemetry.coverage", "lease.count", "execution.failures"],
-    "traces": ["SwarmSpec→identity→lease→gate→execution→receipt"]
+    "logs": [
+      "workload.lifecycle",
+      "lease.lifecycle",
+      "execution.receipt",
+      "authority.degradation"
+    ],
+    "metrics": [
+      "active.workloads",
+      "telemetry.coverage",
+      "lease.count",
+      "execution.failures"
+    ],
+    "traces": [
+      "SwarmSpec→identity→lease→gate→execution→receipt"
+    ]
   },
   "security": {
     "trust_boundaries": [
@@ -41,5 +69,69 @@
   "epistemic": {
     "status": "ENGINEERING_CANDIDATE",
     "confidence": 0.82
+  },
+  "architecture_knowledge": {
+    "schema_version": "1.0.0",
+    "global_owner": "DonkeyJJLove/ai_platform",
+    "semantic_exports": [
+      "execution_mesh",
+      "workload_runtime",
+      "telemetry",
+      "capability_lease_runtime"
+    ],
+    "semantic_imports": [
+      "architecture",
+      "authority",
+      "contracts",
+      "currentness"
+    ],
+    "repository_dependencies": [
+      "DonkeyJJLove/ai_platform"
+    ],
+    "architecture_artifacts": [
+      {
+        "path": "AGENTS.md",
+        "class": "HUMAN_ARCHITECTURE_DOCUMENT",
+        "currentness": "LOCAL_OWNER"
+      },
+      {
+        "path": "AI_NATIVE_ROADMAP.md",
+        "class": "ROADMAP",
+        "currentness": "LOCAL_OWNER"
+      },
+      {
+        "path": "PROCESS_GUARD.md",
+        "class": "PROCESS_GUARD",
+        "currentness": "LOCAL_OWNER"
+      },
+      {
+        "path": "runtime/README.md",
+        "class": "HUMAN_ARCHITECTURE_DOCUMENT",
+        "currentness": "LOCAL_OWNER"
+      },
+      {
+        "path": "security/README.md",
+        "class": "HUMAN_ARCHITECTURE_DOCUMENT",
+        "currentness": "LOCAL_OWNER"
+      },
+      {
+        "path": "infrastructure/README.md",
+        "class": "HUMAN_ARCHITECTURE_DOCUMENT",
+        "currentness": "LOCAL_OWNER"
+      }
+    ],
+    "discoverability": {
+      "entrypoint": "AGENTS.md",
+      "global_owner_route": "AGENTS.md -> cyber-lion.repository.json -> DonkeyJJLove/ai_platform:LION/architecture/v1_5/README.md",
+      "max_reads_to_global_owner": 3
+    },
+    "invalidation_triggers": [
+      "SOURCE_CHANGE",
+      "CONTRACT_CHANGE",
+      "CAPABILITY_CHANGE",
+      "CURRENTNESS_CHANGE",
+      "REPOSITORY_ROLE_CHANGE",
+      "DEPENDENCY_CHANGE"
+    ]
   }
 }
