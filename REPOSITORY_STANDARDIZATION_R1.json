@@ -1,0 +1,34 @@
+{
+  "schema": "lion.repository-standardization/v1",
+  "repository": "DonkeyJJLove/swarm",
+  "baseline": {
+    "head": "5964fde8b8c1a17c7dc5c6ee4ea68b8ec1b8e987",
+    "tree": "e1fcf5d0abd87ba80bf59c84fa2612299c207bbb"
+  },
+  "global_standard_owner": "DonkeyJJLove/ai_platform:LION/standards/README.md",
+  "rename_map": [
+    {
+      "from": "infrastructure/istio/virtualservices/readme.md",
+      "to": "infrastructure/istio/virtualservices/README.md"
+    },
+    {
+      "from": "scripts/kubediag/readme.md",
+      "to": "scripts/kubediag/README.md"
+    }
+  ],
+  "deletions": [
+    {
+      "path": "aggregator/readme.md",
+      "classification": "DELETE_CANDIDATE_CONFIRMED",
+      "evidence": [
+        "NO_REFERENCES",
+        "CANONICAL_SIBLING_EXISTS",
+        "CONTENT_TEST_MARKER_ONLY",
+        "NO_MANIFEST_ROLE"
+      ],
+      "historical_recovery": "git history"
+    }
+  ],
+  "unresolved": [],
+  "authority_effect": "NONE"
+}
