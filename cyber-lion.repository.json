@@ -108,13 +108,13 @@
         "currentness": "LOCAL_OWNER"
       },
       {
-        "path": "runtime/README.md",
-        "class": "HUMAN_ARCHITECTURE_DOCUMENT",
+        "path": "REPOSITORY_STANDARDIZATION_R1.json",
+        "class": "MACHINE_READABLE_ARCHITECTURE",
         "currentness": "LOCAL_OWNER"
       },
       {
-        "path": "security/README.md",
-        "class": "HUMAN_ARCHITECTURE_DOCUMENT",
+        "path": "federation/ai_platform_runtime_adapter.py",
+        "class": "CONTRACT",
         "currentness": "LOCAL_OWNER"
       },
       {
@@ -123,8 +123,13 @@
         "currentness": "LOCAL_OWNER"
       },
       {
-        "path": "REPOSITORY_STANDARDIZATION_R1.json",
-        "class": "MACHINE_READABLE_ARCHITECTURE",
+        "path": "runtime/README.md",
+        "class": "HUMAN_ARCHITECTURE_DOCUMENT",
+        "currentness": "LOCAL_OWNER"
+      },
+      {
+        "path": "security/README.md",
+        "class": "HUMAN_ARCHITECTURE_DOCUMENT",
         "currentness": "LOCAL_OWNER"
       }
     ],
