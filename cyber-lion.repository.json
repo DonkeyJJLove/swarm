@@ -77,13 +77,16 @@
       "execution_mesh",
       "workload_runtime",
       "telemetry",
-      "capability_lease_runtime"
+      "capability_lease_runtime",
+      "cognitive_workload_candidate",
+      "runtime_telemetry"
     ],
     "semantic_imports": [
       "architecture",
       "authority",
       "contracts",
-      "currentness"
+      "currentness",
+      "semantic_relevance"
     ],
     "repository_dependencies": [
       "DonkeyJJLove/ai_platform"
